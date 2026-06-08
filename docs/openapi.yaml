@@ -1,0 +1,1158 @@
+openapi: 3.0.3
+info:
+  title: TNY Catálogo — API
+  description: |
+    API do catálogo online da TNY. Cobre as funcionalidades públicas do cliente
+    (visualização de catálogo, carrinho/pedido via WhatsApp, newsletter) e as
+    rotas administrativas (gerenciamento de produtos, variações, imagens,
+    categorias, pedidos, leads e admins).
+
+    ## Convenções
+    - Datas em ISO 8601 (`YYYY-MM-DDTHH:mm:ssZ`).
+    - Preços em decimal com 2 casas (ex.: `89.90`).
+    - Paginação por `page` (1-indexed) e `limit`. Resposta inclui `meta`.
+    - Rotas sob `/admin` exigem header `Authorization: Bearer <token>`.
+
+    ## Lógica de preço (herança Produto → Item)
+    O preço exibido segue: se `Item.preco` está preenchido, usa o dele; se `null`,
+    herda `Produto.preco`. O backend resolve isso e expõe o campo `preco_final`
+    nos itens retornados, junto com o `preco` bruto da variação (nullable).
+
+    ## Imagens — regra de exibição
+    Capa e galeria principal priorizam imagens com `id_item = null`. Se o produto
+    não tiver imagens gerais, o backend cai para as imagens da primeira variação.
+    Se não houver nenhuma, retorna `null` em `imagem_capa` e o cliente exibe
+    placeholder.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local
+
+tags:
+  - name: Categorias (público)
+    description: Listagem de categorias para navegação do cliente.
+  - name: Produtos (público)
+    description: Catálogo, busca e detalhes dos produtos.
+  - name: Pedidos (público)
+    description: Registro de pedidos antes do redirecionamento ao WhatsApp.
+  - name: Leads (público)
+    description: Cadastro opcional para newsletter/promoções (RF005).
+  - name: Autenticação
+    description: Login e sessão do administrador.
+  - name: Admin — Produtos
+  - name: Admin — Variações (Itens)
+  - name: Admin — Imagens
+  - name: Admin — Categorias
+  - name: Admin — Pedidos
+  - name: Admin — Leads
+  - name: Admin — Administradores
+
+security: []
+
+paths:
+
+  
+  # PÚBLICO — CATEGORIAS (RF001)
+  
+  /categorias:
+    get:
+      tags: [Categorias (público)]
+      summary: Listar categorias
+      description: Retorna todas as categorias cadastradas para exibição no menu.
+      responses:
+        '200':
+          description: Lista de categorias
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Categoria' }
+
+  /categorias/{id}:
+    get:
+      tags: [Categorias (público)]
+      summary: Detalhe de uma categoria
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Categoria encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Categoria' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # PÚBLICO — PRODUTOS (RF002, RF009, UC008)
+  
+  /produtos:
+    get:
+      tags: [Produtos (público)]
+      summary: Listar produtos (com filtros e busca)
+      description: |
+        Retorna produtos ativos. Suporta filtro por categoria e busca por nome
+        (RF009). Cada produto traz `imagem_capa` resolvida e `preco` base.
+      parameters:
+        - in: query
+          name: categoria_id
+          schema: { type: integer }
+          description: Filtrar por categoria.
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Busca por nome do produto (case-insensitive, parcial).
+        - in: query
+          name: page
+          schema: { type: integer, default: 1, minimum: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+      responses:
+        '200':
+          description: Lista paginada de produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ProdutoResumo' }
+                  meta: { $ref: '#/components/schemas/PaginacaoMeta' }
+
+  /produtos/{id}:
+    get:
+      tags: [Produtos (público)]
+      summary: Detalhe completo do produto
+      description: |
+        Retorna o produto com suas variações (itens), imagens e categorias.
+        Cada item retorna `preco_final` (resolvido pela regra de herança) e
+        `quantidade` (estoque da variação).
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Produto encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProdutoDetalhe' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # PÚBLICO — PEDIDOS (RF004)
+  
+  /pedidos:
+    post:
+      tags: [Pedidos (público)]
+      summary: Criar pedido (antes do redirect ao WhatsApp)
+      description: |
+        Registra o pedido no banco com itens congelados (nome, cor, tamanho,
+        preço unitário aplicando a regra de herança). Retorna `id_pedido` e
+        `mensagem_whatsapp` pronta para abrir no app. O `status` inicial é `novo`.
+
+        O backend deve validar estoque (`Item.quantidade`) antes de aceitar.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PedidoCreate' }
+      responses:
+        '201':
+          description: Pedido criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PedidoCriadoResposta' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '409':
+          description: Estoque insuficiente para alguma variação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  
+  # PÚBLICO — LEADS (RF005)
+  
+  /leads:
+    post:
+      tags: [Leads (público)]
+      summary: Cadastrar lead para newsletter
+      description: |
+        Cadastro opcional para receber promoções. Em caso de email duplicado,
+        atualiza silenciosamente os dados (upsert) e renova `data_consentimento`.
+        `consentimento_marketing` é registrado por boas práticas de LGPD.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeadCreate' }
+      responses:
+        '201':
+          description: Lead cadastrado/atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Lead' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+
+  
+  # AUTENTICAÇÃO ADMIN (RNF003)
+  
+  /admin/auth/login:
+    post:
+      tags: [Autenticação]
+      summary: Login do administrador
+      description: |
+        Bloqueia após 5 tentativas inválidas (RNF003). Retorna token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, senha]
+              properties:
+                email: { type: string, format: email }
+                senha: { type: string, format: password, minLength: 8 }
+      responses:
+        '200':
+          description: Autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string }
+                      admin: { $ref: '#/components/schemas/Admin' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '423':
+          description: Conta bloqueada (5 tentativas inválidas)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  /admin/auth/me:
+    get:
+      tags: [Autenticação]
+      summary: Dados do admin logado
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Admin atual
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Admin' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /admin/auth/logout:
+    post:
+      tags: [Autenticação]
+      summary: Logout
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Sessão encerrada }
+
+  
+  # ADMIN — PRODUTOS (RF010, UC005)
+  
+  /admin/produtos:
+    get:
+      tags: [Admin — Produtos]
+      summary: Listar produtos (admin)
+      description: Inclui produtos inativos. Filtros opcionais.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: ativo
+          schema: { type: boolean }
+        - in: query
+          name: categoria_id
+          schema: { type: integer }
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ProdutoResumo' }
+                  meta: { $ref: '#/components/schemas/PaginacaoMeta' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+    post:
+      tags: [Admin — Produtos]
+      summary: Criar produto
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProdutoCreate' }
+      responses:
+        '201':
+          description: Criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProdutoDetalhe' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /admin/produtos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [Admin — Produtos]
+      summary: Detalhe (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Produto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProdutoDetalhe' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Admin — Produtos]
+      summary: Atualizar produto
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProdutoUpdate' }
+      responses:
+        '200':
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProdutoDetalhe' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Admin — Produtos]
+      summary: Remover produto (soft delete via `ativo=false`)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Removido }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /admin/produtos/{id}/categorias:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    put:
+      tags: [Admin — Produtos]
+      summary: Substituir categorias do produto
+      description: Substitui o conjunto inteiro de categorias associadas.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoria_ids]
+              properties:
+                categoria_ids:
+                  type: array
+                  items: { type: integer }
+      responses:
+        '200':
+          description: Associações atualizadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Categoria' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # ADMIN — VARIAÇÕES (ITENS)
+  
+  /admin/produtos/{id}/itens:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [Admin — Variações (Itens)]
+      summary: Listar variações de um produto
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de variações
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Item' }
+    post:
+      tags: [Admin — Variações (Itens)]
+      summary: Criar variação
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ItemCreate' }
+      responses:
+        '201':
+          description: Criada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Item' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/itens/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    put:
+      tags: [Admin — Variações (Itens)]
+      summary: Atualizar variação (inclui ajuste de estoque e preço próprio)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ItemUpdate' }
+      responses:
+        '200':
+          description: Atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Item' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Admin — Variações (Itens)]
+      summary: Remover variação
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Removida }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # ADMIN — IMAGENS
+  
+  /admin/produtos/{id}/imagens:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [Admin — Imagens]
+      summary: Upload de imagem para o produto
+      description: |
+        Se `id_item` for enviado, a imagem é específica daquela variação.
+        Se `null` ou omitido, é imagem geral do produto.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [arquivo]
+              properties:
+                arquivo:
+                  type: string
+                  format: binary
+                id_item:
+                  type: integer
+                  nullable: true
+                alt_text:
+                  type: string
+                ordem:
+                  type: integer
+                  default: 0
+      responses:
+        '201':
+          description: Imagem cadastrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Imagem' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+
+  /admin/imagens/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    put:
+      tags: [Admin — Imagens]
+      summary: Atualizar metadados da imagem (ordem, alt_text, vínculo com variação)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_item:
+                  type: integer
+                  nullable: true
+                alt_text: { type: string }
+                ordem: { type: integer }
+      responses:
+        '200':
+          description: Atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Imagem' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Admin — Imagens]
+      summary: Remover imagem
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Removida }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # ADMIN — CATEGORIAS (UC006)
+  
+  /admin/categorias:
+    get:
+      tags: [Admin — Categorias]
+      summary: Listar categorias
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Categoria' }
+    post:
+      tags: [Admin — Categorias]
+      summary: Criar categoria
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoriaCreate' }
+      responses:
+        '201':
+          description: Criada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Categoria' }
+
+  /admin/categorias/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    put:
+      tags: [Admin — Categorias]
+      summary: Atualizar categoria
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoriaCreate' }
+      responses:
+        '200':
+          description: Atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Categoria' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Admin — Categorias]
+      summary: Remover categoria
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Removida }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # ADMIN — PEDIDOS
+  
+  /admin/pedidos:
+    get:
+      tags: [Admin — Pedidos]
+      summary: Listar pedidos
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [novo, atendido, ignorado]
+        - in: query
+          name: data_de
+          schema: { type: string, format: date }
+        - in: query
+          name: data_ate
+          schema: { type: string, format: date }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/PedidoResumo' }
+                  meta: { $ref: '#/components/schemas/PaginacaoMeta' }
+
+  /admin/pedidos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [Admin — Pedidos]
+      summary: Detalhe do pedido
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Pedido com itens congelados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PedidoDetalhe' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /admin/pedidos/{id}/status:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [Admin — Pedidos]
+      summary: Atualizar status do pedido
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [novo, atendido, ignorado]
+      responses:
+        '200':
+          description: Status atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PedidoResumo' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # ADMIN — LEADS
+  
+  /admin/leads:
+    get:
+      tags: [Admin — Leads]
+      summary: Listar leads
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Busca por nome ou email
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Lead' }
+                  meta: { $ref: '#/components/schemas/PaginacaoMeta' }
+
+  /admin/leads/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    delete:
+      tags: [Admin — Leads]
+      summary: Remover lead (direito de exclusão — LGPD)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Removido }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  
+  # ADMIN — ADMINISTRADORES
+  
+  /admin/admins:
+    get:
+      tags: [Admin — Administradores]
+      summary: Listar admins
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Admin' }
+    post:
+      tags: [Admin — Administradores]
+      summary: Criar admin
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminCreate' }
+      responses:
+        '201':
+          description: Criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Admin' }
+
+  /admin/admins/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    put:
+      tags: [Admin — Administradores]
+      summary: Atualizar admin (inclui ativo/inativo)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminUpdate' }
+      responses:
+        '200':
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Admin' }
+    delete:
+      tags: [Admin — Administradores]
+      summary: Remover admin
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Removido }
+
+
+# COMPONENTES
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdPath:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer }
+
+  responses:
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    Unauthorized:
+      description: Não autenticado ou token inválido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    ValidationError:
+      description: Erro de validação
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErroValidacao' }
+
+  schemas:
+
+    # ---------- Genéricos ----------
+    Erro:
+      type: object
+      properties:
+        erro:
+          type: object
+          properties:
+            codigo: { type: string, example: NOT_FOUND }
+            mensagem: { type: string, example: Recurso não encontrado }
+
+    ErroValidacao:
+      type: object
+      properties:
+        erro:
+          type: object
+          properties:
+            codigo: { type: string, example: VALIDATION_ERROR }
+            mensagem: { type: string }
+            campos:
+              type: array
+              items:
+                type: object
+                properties:
+                  campo: { type: string }
+                  mensagem: { type: string }
+
+    PaginacaoMeta:
+      type: object
+      properties:
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 20 }
+        total: { type: integer, example: 137 }
+        total_paginas: { type: integer, example: 7 }
+
+    # ---------- Categoria ----------
+    Categoria:
+      type: object
+      properties:
+        id_categoria: { type: integer }
+        nome: { type: string, example: Camisetas }
+        descricao: { type: string, nullable: true }
+
+    CategoriaCreate:
+      type: object
+      required: [nome]
+      properties:
+        nome: { type: string, maxLength: 100 }
+        descricao: { type: string, nullable: true }
+
+    # ---------- Produto ----------
+    ProdutoResumo:
+      type: object
+      properties:
+        id_produto: { type: integer }
+        sku: { type: string }
+        nome: { type: string }
+        preco: { type: number, format: float, example: 89.90 }
+        ativo: { type: boolean }
+        imagem_capa:
+          type: string
+          format: uri
+          nullable: true
+          description: URL resolvida pelo backend (regra de fallback)
+        categorias:
+          type: array
+          items: { $ref: '#/components/schemas/Categoria' }
+
+    ProdutoDetalhe:
+      allOf:
+        - $ref: '#/components/schemas/ProdutoResumo'
+        - type: object
+          properties:
+            descricao: { type: string }
+            data_cadastro: { type: string, format: date-time }
+            itens:
+              type: array
+              items: { $ref: '#/components/schemas/Item' }
+            imagens:
+              type: array
+              items: { $ref: '#/components/schemas/Imagem' }
+
+    ProdutoCreate:
+      type: object
+      required: [sku, nome, descricao, preco]
+      properties:
+        sku: { type: string, maxLength: 50 }
+        nome: { type: string, maxLength: 150 }
+        descricao: { type: string }
+        preco: { type: number, format: float, minimum: 0 }
+        ativo: { type: boolean, default: true }
+        categoria_ids:
+          type: array
+          items: { type: integer }
+
+    ProdutoUpdate:
+      type: object
+      properties:
+        sku: { type: string }
+        nome: { type: string }
+        descricao: { type: string }
+        preco: { type: number, format: float }
+        ativo: { type: boolean }
+        categoria_ids:
+          type: array
+          items: { type: integer }
+
+    # ---------- Item (variação) ----------
+    Item:
+      type: object
+      properties:
+        id_item: { type: integer }
+        id_produto: { type: integer }
+        sku_variacao: { type: string }
+        cor: { type: string, example: Preto }
+        tamanho: { type: string, example: M }
+        quantidade: { type: integer, example: 12 }
+        preco:
+          type: number
+          format: float
+          nullable: true
+          description: Preço próprio da variação. Se null, herda do Produto.
+        preco_final:
+          type: number
+          format: float
+          description: Preço resolvido pela regra de herança (read-only).
+
+    ItemCreate:
+      type: object
+      required: [sku_variacao, cor, tamanho, quantidade]
+      properties:
+        sku_variacao: { type: string }
+        cor: { type: string }
+        tamanho: { type: string }
+        quantidade: { type: integer, minimum: 0 }
+        preco:
+          type: number
+          format: float
+          nullable: true
+          minimum: 0
+
+    ItemUpdate:
+      type: object
+      properties:
+        sku_variacao: { type: string }
+        cor: { type: string }
+        tamanho: { type: string }
+        quantidade: { type: integer, minimum: 0 }
+        preco:
+          type: number
+          format: float
+          nullable: true
+
+    # ---------- Imagem ----------
+    Imagem:
+      type: object
+      properties:
+        id_imagem: { type: integer }
+        id_produto: { type: integer }
+        id_item:
+          type: integer
+          nullable: true
+        url: { type: string, format: uri }
+        alt_text: { type: string, nullable: true }
+        ordem: { type: integer, example: 0 }
+
+    # ---------- Lead ----------
+    Lead:
+      type: object
+      properties:
+        id_lead: { type: integer }
+        nome: { type: string }
+        email: { type: string, format: email }
+        telefone: { type: string }
+        consentimento_marketing: { type: boolean, example: true }
+        data_consentimento: { type: string, format: date-time }
+        data_cadastro: { type: string, format: date-time }
+
+    LeadCreate:
+      type: object
+      required: [nome, email, telefone]
+      properties:
+        nome: { type: string, maxLength: 150 }
+        email: { type: string, format: email }
+        telefone: { type: string, example: '+5585999999999' }
+        consentimento_marketing:
+          type: boolean
+          default: true
+          description: Padrão `true` — o RF005 é explicitamente opt-in.
+
+    # ---------- Pedido ----------
+    ItemPedidoCreate:
+      type: object
+      required: [id_item, quantidade]
+      properties:
+        id_item: { type: integer }
+        quantidade: { type: integer, minimum: 1 }
+
+    ItemPedido:
+      type: object
+      properties:
+        id_item_pedido: { type: integer }
+        id_item: { type: integer }
+        nome_produto: { type: string }
+        cor: { type: string }
+        tamanho: { type: string }
+        quantidade: { type: integer }
+        preco_unitario: { type: number, format: float }
+        subtotal: { type: number, format: float }
+
+    PedidoCreate:
+      type: object
+      required: [nome, telefone, itens]
+      properties:
+        nome: { type: string }
+        telefone: { type: string }
+        email: { type: string, format: email, nullable: true }
+        forma_pag:
+          type: string
+          example: PIX
+        mensagem:
+          type: string
+          nullable: true
+        obs:
+          type: string
+          nullable: true
+        itens:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ItemPedidoCreate' }
+
+    PedidoCriadoResposta:
+      type: object
+      properties:
+        id_pedido: { type: integer }
+        valor_total: { type: number, format: float }
+        status: { type: string, example: novo }
+        data_contato: { type: string, format: date-time }
+        whatsapp_url:
+          type: string
+          format: uri
+          description: URL pronta no formato `https://wa.me/...?text=...` para redirect.
+        mensagem_whatsapp:
+          type: string
+          description: Texto da mensagem já formatado.
+
+    PedidoResumo:
+      type: object
+      properties:
+        id_pedido: { type: integer }
+        nome: { type: string }
+        telefone: { type: string }
+        valor_total: { type: number, format: float }
+        status:
+          type: string
+          enum: [novo, atendido, ignorado]
+        data_contato: { type: string, format: date-time }
+
+    PedidoDetalhe:
+      allOf:
+        - $ref: '#/components/schemas/PedidoResumo'
+        - type: object
+          properties:
+            email: { type: string, nullable: true }
+            forma_pag: { type: string }
+            mensagem: { type: string, nullable: true }
+            obs: { type: string, nullable: true }
+            itens:
+              type: array
+              items: { $ref: '#/components/schemas/ItemPedido' }
+
+    # ---------- Admin ----------
+    Admin:
+      type: object
+      properties:
+        id_admin: { type: integer }
+        nome: { type: string }
+        email: { type: string, format: email }
+        ativo: { type: boolean }
+        data_cadastro: { type: string, format: date-time }
+
+    AdminCreate:
+      type: object
+      required: [nome, email, senha]
+      properties:
+        nome: { type: string }
+        email: { type: string, format: email }
+        senha: { type: string, format: password, minLength: 8 }
+        ativo: { type: boolean, default: true }
+
+    AdminUpdate:
+      type: object
+      properties:
+        nome: { type: string }
+        email: { type: string, format: email }
+        senha: { type: string, format: password, minLength: 8 }
+        ativo: { type: boolean }
