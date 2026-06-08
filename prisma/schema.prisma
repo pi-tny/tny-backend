@@ -1,13 +1,142 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js" // Ajustado para o provider correto do JS/TS
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
+}
+
+model Produto {
+  id_produto    Int                @id @default(autoincrement())
+  sku           String             @unique
+  nome          String
+  descricao     String
+  preco         Float              // Preço base
+  ativo         Boolean            @default(true)
+  data_cadastro DateTime           @default(now())
+
+  // Relacionamentos
+  categorias    ProdutoCategoria[]
+  itens         Item[]
+  imagens       Imagem[]
+
+  @@map("produtos")
+}
+
+model Categoria {
+  id_categoria Int                @id @default(autoincrement())
+  nome         String
+  descricao    String
+
+  // Relacionamentos
+  produtos     ProdutoCategoria[]
+
+  @@map("categorias")
+}
+
+// Tabela associativa explícita (N:N) conforme solicitado
+model ProdutoCategoria {
+  id_produto   Int
+  id_categoria Int
+
+  // Relações
+  produto   Produto   @relation(fields: [id_produto], references: [id_produto], onDelete: Cascade)
+  categoria Categoria @relation(fields: [id_categoria], references: [id_categoria], onDelete: Cascade)
+
+  @@id([id_produto, id_categoria])
+  @@map("produto_categoria")
+}
+
+model Item {
+  id_item      Int          @id @default(autoincrement())
+  id_produto   Int
+  sku_variacao String       @unique
+  cor          String
+  tamanho      String
+  quantidade   Int          // Estoque da variação
+  preco        Float?       // Nullable: se null, herda do Produto via backend
+
+  // Relações
+  produto      Produto      @relation(fields: [id_produto], references: [id_produto], onDelete: Cascade)
+  imagens      Imagem[]
+  itens_pedido ItemPedido[]
+
+  @@map("itens")
+}
+
+model Imagem {
+  id_imagem  Int     @id @default(autoincrement())
+  id_produto Int
+  id_item    Int?    // Nullable: imagem geral do produto ou específica da variação
+  url        String
+  alt_text   String
+  ordem      Int
+
+  // Relações
+  produto    Produto @relation(fields: [id_produto], references: [id_produto], onDelete: Cascade)
+  item       Item?   @relation(fields: [id_item], references: [id_item], onDelete: SetNull)
+
+  @@map("imagens")
+}
+
+model Lead {
+  id_lead                 Int      @id @default(autoincrement())
+  nome                    String
+  email                   String   @unique // Garantindo a unicidade para o fluxo de upsert
+  telefone                String
+  data_cadastro           DateTime @default(now())
+  consentimento_marketing Boolean  @default(true)
+  data_consentimento      DateTime @default(now())
+
+  @@map("leads")
+}
+
+model Pedido {
+  id_pedido    Int          @id @default(autoincrement())
+  nome         String
+  telefone     String
+  email        String?      // Opcional
+  forma_pag    String
+  mensagem     String
+  obs          String
+  data_contato DateTime     @default(now())
+  valor_total  Float
+  status       String       @default("novo") // padrão: novo (valores: novo | atendido | ignorado)
+
+  // Relações
+  itens_pedido ItemPedido[]
+
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id_item_pedido Int    @id @default(autoincrement())
+  id_pedido      Int
+  id_item        Int
+  nome_produto   String // Congelado no momento da compra
+  cor            String // Congelado no momento da compra
+  tamanho        String // Congelado no momento da compra
+  quantidade     Int
+  preco_unitario Float  // Preço calculado por herança e congelado
+
+  // Relações
+  pedido         Pedido @relation(fields: [id_pedido], references: [id_pedido], onDelete: Cascade)
+  item           Item   @relation(fields: [id_item], references: [id_item], onDelete: Restrict)
+
+  @@map("itens_pedido")
+}
+
+model Admin {
+  id_admin      Int      @id @default(autoincrement())
+  nome          String
+  email         String   @unique
+  senha_hash    String
+  ativo         Boolean  @default(true)
+  data_cadastro DateTime @default(now())
+
+  @@map("admins")
 }
