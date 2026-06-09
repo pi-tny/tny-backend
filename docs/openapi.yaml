@@ -860,7 +860,7 @@ components:
 
   schemas:
 
-    # ---------- Genéricos ----------
+    # Genéricos 
     Erro:
       type: object
       properties:
@@ -894,7 +894,7 @@ components:
         total: { type: integer, example: 137 }
         total_paginas: { type: integer, example: 7 }
 
-    # ---------- Categoria ----------
+    # Categoria 
     Categoria:
       type: object
       properties:
@@ -909,7 +909,7 @@ components:
         nome: { type: string, maxLength: 100 }
         descricao: { type: string, nullable: true }
 
-    # ---------- Produto ----------
+    # Produto 
     ProdutoResumo:
       type: object
       properties:
@@ -966,7 +966,7 @@ components:
           type: array
           items: { type: integer }
 
-    # ---------- Item (variação) ----------
+    # Item (variação) 
     Item:
       type: object
       properties:
@@ -1012,7 +1012,7 @@ components:
           format: float
           nullable: true
 
-    # ---------- Imagem ----------
+    # Imagem 
     Imagem:
       type: object
       properties:
@@ -1025,7 +1025,7 @@ components:
         alt_text: { type: string, nullable: true }
         ordem: { type: integer, example: 0 }
 
-    # ---------- Lead ----------
+    # Lead 
     Lead:
       type: object
       properties:
@@ -1049,7 +1049,7 @@ components:
           default: true
           description: Padrão `true` — o RF005 é explicitamente opt-in.
 
-    # ---------- Pedido ----------
+    # Pedido 
     ItemPedidoCreate:
       type: object
       required: [id_item, quantidade]
@@ -1130,7 +1130,7 @@ components:
               type: array
               items: { $ref: '#/components/schemas/ItemPedido' }
 
-    # ---------- Admin ----------
+    # Admin 
     Admin:
       type: object
       properties:
