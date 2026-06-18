@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { makeUpdateCategoryUseCase } from "@/use-cases/factories/make-category-use-cases";
-import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
+import { mapDomainError } from "@/http/map-domain-error";
 import type { CategoryBody, CategoryIdParam } from "./schemas";
 
 export async function update(
@@ -18,11 +18,6 @@ export async function update(
     });
     return reply.status(200).send({ data: category });
   } catch (error) {
-    if (error instanceof ResourceNotFoundError) {
-      return reply
-        .status(404)
-        .send({ error: { code: "NOT_FOUND", message: error.message } });
-    }
-    throw error;
+    return mapDomainError(error, reply);
   }
 }
