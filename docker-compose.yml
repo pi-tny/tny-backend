@@ -1,0 +1,17 @@
+# sqlite-based stack: single api service, db file persisted in a named volume
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: file:/data/dev.db
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    volumes:
+      - tny_data:/data
+
+volumes:
+  tny_data:
