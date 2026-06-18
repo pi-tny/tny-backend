@@ -15,10 +15,20 @@ interface UpdateCategoryUseCaseResponse {
 export class UpdateCategoryUseCase {
   constructor(private categoriesRepository: CategoriesRepository) {}
 
-  async execute(
-    _request: UpdateCategoryUseCaseRequest,
-  ): Promise<UpdateCategoryUseCaseResponse> {
-    // RED stub — not implemented yet.
-    throw new ResourceNotFoundError();
+  async execute({
+    id,
+    name,
+    description,
+  }: UpdateCategoryUseCaseRequest): Promise<UpdateCategoryUseCaseResponse> {
+    const category = await this.categoriesRepository.update(id, {
+      name,
+      description: description ?? null,
+    });
+
+    if (!category) {
+      throw new ResourceNotFoundError();
+    }
+
+    return { category };
   }
 }
