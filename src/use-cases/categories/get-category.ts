@@ -1,5 +1,6 @@
 import type { Category } from "../../../generated/prisma";
 import type { CategoriesRepository } from "@/repositories/categories-repository";
+import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
 
 interface GetCategoryUseCaseRequest {
   id: number;
@@ -12,10 +13,15 @@ interface GetCategoryUseCaseResponse {
 export class GetCategoryUseCase {
   constructor(private categoriesRepository: CategoriesRepository) {}
 
-  async execute(
-    _request: GetCategoryUseCaseRequest,
-  ): Promise<GetCategoryUseCaseResponse> {
-    // RED stub — not implemented yet.
-    return { category: { id: 0, name: "", description: null } };
+  async execute({
+    id,
+  }: GetCategoryUseCaseRequest): Promise<GetCategoryUseCaseResponse> {
+    const category = await this.categoriesRepository.findById(id);
+
+    if (!category) {
+      throw new ResourceNotFoundError();
+    }
+
+    return { category };
   }
 }
