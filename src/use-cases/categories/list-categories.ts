@@ -9,7 +9,7 @@ export class ListCategoriesUseCase {
   constructor(private categoriesRepository: CategoriesRepository) {}
 
   async execute(): Promise<ListCategoriesUseCaseResponse> {
-    // RED stub — not implemented yet.
-    return { categories: [] };
+    const categories = await this.categoriesRepository.findMany();
+    return { categories };
   }
 }
