@@ -13,10 +13,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate",
-    "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset"
+    "db:migrate": "node scripts/prisma.mjs migrate dev",
+    "db:generate": "node scripts/prisma.mjs generate",
+    "db:seed": "node scripts/prisma.mjs db seed",
+    "db:reset": "node scripts/prisma.mjs migrate reset"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.9.2",
+    "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^10.4.1",
@@ -49,6 +50,7 @@
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.6",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
@@ -56,6 +58,7 @@
     "dotenv": "^17.4.2",
     "fastify": "^5.8.5",
     "fastify-type-provider-zod": "^6.1.0",
+    "pg": "^8.21.0",
     "zod": "^4.4.3"
   }
 }

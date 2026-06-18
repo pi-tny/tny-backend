@@ -3,13 +3,15 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// migrations are dialect-specific, so keep one folder per provider.
+const provider = process.env.DATABASE_PROVIDER === "postgres" ? "postgres" : "sqlite";
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
-    path: "prisma/migrations",
+    path: `prisma/migrations/${provider}`,
     seed: "tsx prisma/seed.ts",
   },
-  // Prisma 7: datasource URL lives here (not in the schema). Driven by DATABASE_URL.
   datasource: {
     url: process.env.DATABASE_URL,
   },
