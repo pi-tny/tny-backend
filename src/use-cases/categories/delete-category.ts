@@ -8,7 +8,11 @@ interface DeleteCategoryUseCaseRequest {
 export class DeleteCategoryUseCase {
   constructor(private categoriesRepository: CategoriesRepository) {}
 
-  async execute(_request: DeleteCategoryUseCaseRequest): Promise<void> {
-    // RED stub — not implemented yet.
+  async execute({ id }: DeleteCategoryUseCaseRequest): Promise<void> {
+    const deleted = await this.categoriesRepository.delete(id);
+
+    if (!deleted) {
+      throw new ResourceNotFoundError();
+    }
   }
 }
