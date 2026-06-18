@@ -1,76 +1,59 @@
-import fastify from "fastify";
-import { ZodError } from "zod";
 import path from "node:path";
-import { env } from "./env";
+import fastify from "fastify";
 import fastifyJwt from "@fastify/jwt";
-import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
 import {
   serializerCompiler,
   validatorCompiler,
-  // jsonSchemaTransform,
+  type ZodTypeProvider,
 } from "fastify-type-provider-zod";
+import { env } from "@/env";
+import { errorHandler } from "@/http/error-handler";
+import { healthRoutes } from "@/http/controllers/health/routes";
 
-import fastifySwagger from "@fastify/swagger";
-import fastifySwaggerUi from "@fastify/swagger-ui";
+export const app = fastify().withTypeProvider<ZodTypeProvider>();
 
-export const app = fastify();
-
+// Zod drives request validation and response serialization.
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
+// CORS: "*" allows any origin; otherwise a comma-separated allowlist.
 app.register(cors, {
-  origin: "*",
+  origin:
+    env.CORS_ORIGIN === "*"
+      ? true
+      : env.CORS_ORIGIN.split(",").map((origin) => origin.trim()),
 });
 
-// app.register(fastifySwagger, {
-//   openapi: {
-//     info: {
-//       title: "Minha API Fastify",
-//       description: "Documentação da API do sistema.",
-//       version: "1.0.0",
-//     },
-//   },
-//   transform: jsonSchemaTransform,
-// });
-
+// Swagger: docs/openapi.yaml is the source of truth, served statically.
+// The spec is NOT generated from the routes. UI at /docs, spec JSON at /docs/json.
 app.register(fastifySwagger, {
-  mode: 'static',
+  mode: "static",
   specification: {
     path: path.resolve(__dirname, "../docs/openapi.yaml"),
-    baseDir: path.resolve(__dirname, "../docs"), 
+    baseDir: path.resolve(__dirname, "../docs"),
   },
 });
-
 app.register(fastifySwaggerUi, {
   routePrefix: "/docs",
 });
 
+// Auth is Bearer-only (Authorization header); no refresh cookie.
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
-  cookie: {
-    cookieName: "refreshToken",
-    signed: false,
-  },
-  sign: {
-    expiresIn: "10m",
-  },
+  sign: { expiresIn: "1d" },
 });
 
-app.register(fastifyCookie);
+app.setErrorHandler(errorHandler);
 
-app.setErrorHandler((error, _, reply) => {
-  if (error instanceof ZodError) {
-    return reply
-      .status(400)
-      .send({ message: "Validation error", issues: error.format() });
-  }
-
-  if (env.NODE_ENV !== "production") {
-    console.error(error);
-  } else {
-    // TODO: here we should log to an external tool like Datadog/NewRelic/Sentry
-  }
-
-  return reply.status(500).send({ message: "Internal Server Error" });
+// Unmatched routes follow the same Error shape as everything else.
+app.setNotFoundHandler((_request, reply) => {
+  return reply.status(404).send({
+    error: { code: "NOT_FOUND", message: "Resource not found" },
+  });
 });
+
+// Routes (registered manually, no autoload — SKILL-1).
+app.register(healthRoutes);

@@ -1,8 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// TNY Catálogo — Prisma schema.
+// Identifiers in English; tables/columns mapped to snake_case (plural tables).
+// Datasource: SQLite in dev (PostgreSQL via Docker is planned for later).
+// NOTE: SQLite has no native Prisma enum. `Order.status` and `Order.payment_method`
+// are plain Strings here; their closed value sets are enforced by Zod at the app layer
+// (status: new|fulfilled|ignored — payment_method: to_be_defined|boleto|credit_card|cash|pix|bank_transfer).
 
 generator client {
-  provider = "prisma-client-js" // Ajustado para o provider correto do JS/TS
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -10,133 +14,129 @@ datasource db {
   provider = "sqlite"
 }
 
-model Produto {
-  id_produto    Int                @id @default(autoincrement())
-  sku           String             @unique
-  nome          String
-  descricao     String
-  preco         Float              // Preço base
-  ativo         Boolean            @default(true)
-  data_cadastro DateTime           @default(now())
+model Product {
+  id                Int      @id @default(autoincrement())
+  sku               String   @unique
+  name              String
+  description       String
+  price             Float // Base full price
+  promotional_price Float? // If set, the product is on sale (overrides Variant.price)
+  active            Boolean  @default(true) // Soft delete: DELETE via API sets active=false
+  created_at        DateTime @default(now())
 
-  // Relacionamentos
-  categorias    ProdutoCategoria[]
-  itens         Item[]
-  imagens       Imagem[]
+  categories ProductCategory[]
+  variants   Variant[]
+  images     Image[]
 
-  @@map("produtos")
+  @@index([name])
+  @@map("products")
 }
 
-model Categoria {
-  id_categoria Int                @id @default(autoincrement())
-  nome         String
-  descricao    String
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
 
-  // Relacionamentos
-  produtos     ProdutoCategoria[]
+  products ProductCategory[]
 
-  @@map("categorias")
+  @@map("categories")
 }
 
-// Tabela associativa explícita (N:N) conforme solicitado
-model ProdutoCategoria {
-  id_produto   Int
-  id_categoria Int
+// Explicit N:N join table between Product and Category.
+model ProductCategory {
+  product_id  Int
+  category_id Int
 
-  // Relações
-  produto   Produto   @relation(fields: [id_produto], references: [id_produto], onDelete: Cascade)
-  categoria Categoria @relation(fields: [id_categoria], references: [id_categoria], onDelete: Cascade)
+  product  Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
 
-  @@id([id_produto, id_categoria])
-  @@map("produto_categoria")
+  @@id([product_id, category_id])
+  @@map("product_categories")
 }
 
-model Item {
-  id_item      Int          @id @default(autoincrement())
-  id_produto   Int
-  sku_variacao String       @unique
-  cor          String
-  tamanho      String
-  quantidade   Int          // Estoque da variação
-  preco        Float?       // Nullable: se null, herda do Produto via backend
+model Variant {
+  id          Int    @id @default(autoincrement())
+  product_id  Int
+  variant_sku String @unique
+  color       String
+  size        String
+  quantity    Int // Stock for this variation
+  price       Float? // Own price; if null, inherits from Product (unless product is on sale)
 
-  // Relações
-  produto      Produto      @relation(fields: [id_produto], references: [id_produto], onDelete: Cascade)
-  imagens      Imagem[]
-  itens_pedido ItemPedido[]
+  product     Product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  images      Image[]
+  order_items OrderItem[]
 
-  @@map("itens")
+  @@map("variants")
 }
 
-model Imagem {
-  id_imagem  Int     @id @default(autoincrement())
-  id_produto Int
-  id_item    Int?    // Nullable: imagem geral do produto ou específica da variação
+model Image {
+  id         Int     @id @default(autoincrement())
+  product_id Int
+  variant_id Int? // Null = general product image; set = specific to a variant
   url        String
-  alt_text   String
-  ordem      Int
+  alt_text   String?
+  position   Int     @default(0)
 
-  // Relações
-  produto    Produto @relation(fields: [id_produto], references: [id_produto], onDelete: Cascade)
-  item       Item?   @relation(fields: [id_item], references: [id_item], onDelete: SetNull)
+  product Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  variant Variant? @relation(fields: [variant_id], references: [id], onDelete: SetNull)
 
-  @@map("imagens")
+  @@map("images")
 }
 
 model Lead {
-  id_lead                 Int      @id @default(autoincrement())
-  nome                    String
-  email                   String   @unique // Garantindo a unicidade para o fluxo de upsert
-  telefone                String
-  data_cadastro           DateTime @default(now())
-  consentimento_marketing Boolean  @default(true)
-  data_consentimento      DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  name              String
+  email             String   @unique // Unique enables the upsert flow
+  phone             String
+  marketing_consent Boolean  @default(true)
+  consent_date      DateTime @default(now())
+  created_at        DateTime @default(now())
 
   @@map("leads")
 }
 
-model Pedido {
-  id_pedido    Int          @id @default(autoincrement())
-  nome         String
-  telefone     String
-  email        String?      // Opcional
-  forma_pag    String
-  mensagem     String
-  obs          String
-  data_contato DateTime     @default(now())
-  valor_total  Float
-  status       String       @default("novo") // padrão: novo (valores: novo | atendido | ignorado)
+model Order {
+  id             Int      @id @default(autoincrement())
+  name           String
+  phone          String
+  email          String?
+  payment_method String   @default("to_be_defined") // enum-like (validated by Zod)
+  message        String?
+  notes          String?
+  total          Float
+  status         String   @default("new") // enum-like: new | fulfilled | ignored
+  created_at     DateTime @default(now())
 
-  // Relações
-  itens_pedido ItemPedido[]
+  items OrderItem[]
 
-  @@map("pedidos")
+  @@index([status])
+  @@map("orders")
 }
 
-model ItemPedido {
-  id_item_pedido Int    @id @default(autoincrement())
-  id_pedido      Int
-  id_item        Int
-  nome_produto   String // Congelado no momento da compra
-  cor            String // Congelado no momento da compra
-  tamanho        String // Congelado no momento da compra
-  quantidade     Int
-  preco_unitario Float  // Preço calculado por herança e congelado
+model OrderItem {
+  id           Int    @id @default(autoincrement())
+  order_id     Int
+  variant_id   Int
+  product_name String // Frozen at purchase time
+  color        String // Frozen at purchase time
+  size         String // Frozen at purchase time
+  quantity     Int
+  unit_price   Float // Resolved (inheritance + promotion) and frozen
 
-  // Relações
-  pedido         Pedido @relation(fields: [id_pedido], references: [id_pedido], onDelete: Cascade)
-  item           Item   @relation(fields: [id_item], references: [id_item], onDelete: Restrict)
+  order   Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  variant Variant @relation(fields: [variant_id], references: [id], onDelete: Restrict)
 
-  @@map("itens_pedido")
+  @@map("order_items")
 }
 
 model Admin {
-  id_admin      Int      @id @default(autoincrement())
-  nome          String
+  id            Int      @id @default(autoincrement())
+  name          String
   email         String   @unique
-  senha_hash    String
-  ativo         Boolean  @default(true)
-  data_cadastro DateTime @default(now())
+  password_hash String
+  active        Boolean  @default(true)
+  created_at    DateTime @default(now())
 
   @@map("admins")
 }

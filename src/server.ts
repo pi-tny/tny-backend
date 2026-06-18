@@ -1,4 +1,4 @@
-import { app } from "./app";
+import { app } from "@/app";
 import { env } from "@/env";
 
 app
@@ -7,5 +7,6 @@ app
     port: env.PORT,
   })
   .then(() => {
-    console.log("🚀 HTTP Server Running!");
+    console.log(`🚀 HTTP Server running on http://localhost:${env.PORT}`);
+    console.log(`📚 Docs available at http://localhost:${env.PORT}/docs`);
   });

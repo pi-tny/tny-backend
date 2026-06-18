@@ -7,11 +7,11 @@ repository). Cobre criação de rotas, use cases, repositórios, validação, er
 
 ## Stack
 - **Runtime:** Node.js + TypeScript (ESM via `tsx`/`tsup`), path alias `@/*` → `src/*`.
-- **Framework HTTP:** Fastify 5 (`@fastify/jwt`, `@fastify/cookie`).
-- **ORM:** Prisma 6 (PostgreSQL).
-- **Validação:** Zod 3 (env e input HTTP).
+- **Framework HTTP:** Fastify 5 (`@fastify/jwt`, `@fastify/cookie`, `@fastify/cors`, `@fastify/swagger`).
+- **ORM:** Prisma 7. **Datasource: SQLite no desenvolvimento**; a migração para PostgreSQL (via Docker) está prevista para depois — escreva o schema/queries de forma portável e evite recursos exclusivos de um banco.
+- **Validação:** Zod 4 (env e input HTTP), com `fastify-type-provider-zod`.
 - **Hash/auth:** bcryptjs + JWT (cookie `refreshToken`).
-- **Testes:** Vitest + Supertest; ambiente Prisma custom para e2e.
+- **Testes:** Vitest + Supertest; ambiente Prisma custom para e2e. (Padrão-alvo — ainda não há runner instalado neste projeto.)
 
 ## Estrutura de pastas
 ```
@@ -260,8 +260,10 @@ Vitest. Dois níveis, separados por pasta (ver scripts `test` vs `test:e2e`):
 - **Unit** (`src/use-cases/*.spec.ts`): testam o use case com um **repositório in-memory**
   (não há mock de Prisma com lib de mock — usam fakes reais). Convenção `sut` + `beforeEach`.
 - **e2e** (`src/http/**/*.spec.ts`): Supertest contra `app.server`, com `app.ready()`/`app.close()`.
-  Rodam no ambiente Vitest custom `prisma` (mapeado em `vite.config.mts` por glob), que cria
-  um **schema Postgres isolado por suíte** (UUID), roda `prisma migrate deploy` e dropa no teardown.
+  Rodam no ambiente Vitest custom `prisma` (mapeado em `vite.config.mts` por glob). No SQLite de dev,
+  isole cada suíte por um **arquivo de banco próprio** (ex.: `file:./test-<uuid>.db`) + `prisma migrate deploy`,
+  removendo o arquivo no teardown. Quando o projeto migrar para PostgreSQL (Docker), troque para um
+  **schema isolado por suíte** (UUID) dropado no teardown.
 
 ```ts
 // src/use-cases/register.spec.ts — unit com repo in-memory

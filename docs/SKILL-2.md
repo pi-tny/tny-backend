@@ -5,13 +5,12 @@ Use ao escrever código novo neste projeto (API HTTP em Fastify + Prisma + Zod s
 ou em projetos que devam seguir EXATAMENTE o mesmo padrão flat e procedural: uma rota = um arquivo = uma função named export que recebe `app: FastifyInstance` e fala direto com o Prisma.
 
 ## Stack
-- **Runtime:** Node.js via `tsx` (dev: `tsx --env-file .env watch src/server.ts`). Sem build step configurado.
-- **Framework:** Fastify 4 + `@fastify/cors`.
-- **ORM:** Prisma 5 (`@prisma/client`), datasource SQLite.
-- **Validação:** Zod 3 via `fastify-type-provider-zod`.
+- **Runtime:** Node.js via `tsx` (dev: `npm run start:dev` → `tsx watch src/server.ts`). Build com `tsup` (`npm run build` → `build/`).
+- **Framework:** Fastify 5 + `@fastify/cors` (+ `@fastify/jwt`, `@fastify/cookie`, `@fastify/swagger` neste projeto).
+- **ORM:** Prisma 7 (`@prisma/client`). **Datasource: SQLite no desenvolvimento**; migração para PostgreSQL (via Docker) prevista para depois — mantenha schema/queries portáveis.
+- **Validação:** Zod 4 via `fastify-type-provider-zod`.
 - **Datas:** dayjs (locale pt-br + `localizedFormat`).
-- **E-mail:** nodemailer (conta de teste Ethereal).
-- **Testes:** **ausente** (nenhum runner instalado, script `test` é placeholder).
+- **Testes:** **ausente** (nenhum runner instalado, sem script `test`).
 
 ## Estrutura de pastas
 ```
