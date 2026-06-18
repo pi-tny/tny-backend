@@ -13,7 +13,6 @@ const portugueseTerms = [
   "categorias",
   "pedido",
   "pedidos",
-  "item",
   "itens",
   "imagem",
   "imagens",

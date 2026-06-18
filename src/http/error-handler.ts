@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { ZodError, type ZodIssue } from "zod";
+import { ZodError } from "zod";
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
@@ -24,13 +24,11 @@ export const errorHandler: FastifyErrorHandler = (error, _request, reply) => {
       error: {
         code: "VALIDATION_ERROR",
         message: "Validation error",
-        fields: error.validation.map((entry) => {
-          const issue = entry.params.issue as ZodIssue;
-          return {
-            field: issue.path.join("."),
-            message: issue.message,
-          };
-        }),
+        fields: error.validation.map((entry) => ({
+          // instancePath looks like "/name" or "/items/0/quantity".
+          field: entry.instancePath.replace(/^\//, "").replace(/\//g, "."),
+          message: entry.message,
+        })),
       },
     });
   }

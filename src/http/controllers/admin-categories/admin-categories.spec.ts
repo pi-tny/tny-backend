@@ -27,7 +27,9 @@ describe("Admin Categories e2e", () => {
 
   it("should list categories when authenticated", async () => {
     const { token } = await createAndAuthenticate(app);
-    await prisma.category.create({ data: { name: "Camisetas", description: null } });
+    await prisma.category.create({
+      data: { name: "Camisetas", description: null },
+    });
 
     const response = await request(app.server)
       .get("/admin/categories")
