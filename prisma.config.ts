@@ -7,6 +7,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "tsx prisma/seed.ts",
   },
   // Prisma 7: datasource URL lives here (not in the schema). Driven by DATABASE_URL.
   datasource: {
