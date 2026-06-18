@@ -13,10 +13,15 @@ interface CreateCategoryUseCaseResponse {
 export class CreateCategoryUseCase {
   constructor(private categoriesRepository: CategoriesRepository) {}
 
-  async execute(
-    _request: CreateCategoryUseCaseRequest,
-  ): Promise<CreateCategoryUseCaseResponse> {
-    // RED stub — not implemented yet.
-    return { category: { id: 0, name: "", description: null } };
+  async execute({
+    name,
+    description,
+  }: CreateCategoryUseCaseRequest): Promise<CreateCategoryUseCaseResponse> {
+    const category = await this.categoriesRepository.create({
+      name,
+      description: description ?? null,
+    });
+
+    return { category };
   }
 }
