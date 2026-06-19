@@ -37,9 +37,9 @@ info:
     name: Projeto Integrador I — TNY
 
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost:3000
     description: Local
-  - url: https://api.tny.example.com/v1
+  - url: https://api.tny.example.com
     description: Produção
 
 tags:
@@ -253,7 +253,7 @@ paths:
     post:
       tags: [Authentication]
       summary: Login do administrador
-      description: Bloqueia após 5 tentativas inválidas (RNF003). Retorna JWT.
+      description: Retorna um JWT (Bearer, validade 1 dia). Auth é Bearer-only, sem cookie de refresh.
       requestBody:
         required: true
         content:
@@ -263,7 +263,7 @@ paths:
               required: [email, password]
               properties:
                 email: { type: string, format: email }
-                password: { type: string, format: password, minLength: 8 }
+                password: { type: string, format: password }
       responses:
         '200':
           description: Autenticado
@@ -276,10 +276,9 @@ paths:
                     type: object
                     properties:
                       token: { type: string }
-                      admin: { $ref: '#/components/schemas/Admin' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '423':
-          description: Conta bloqueada (5 tentativas inválidas)
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401':
+          description: Credenciais inválidas (code INVALID_CREDENTIALS)
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
@@ -299,6 +298,7 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/Admin' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /admin/auth/logout:
     post:
@@ -367,6 +367,7 @@ paths:
                   data: { $ref: '#/components/schemas/ProductDetail' }
         '400': { $ref: '#/components/responses/ValidationError' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
 
   /admin/products/{id}:
     parameters:
@@ -404,7 +405,9 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/ProductDetail' }
         '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
     delete:
       tags: [Admin — Products]
       summary: Remover produto (soft delete via `active=false`)
@@ -485,6 +488,9 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/Variant' }
         '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
 
   /admin/variants/{id}:
     parameters:
@@ -507,7 +513,10 @@ paths:
                 type: object
                 properties:
                   data: { $ref: '#/components/schemas/Variant' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
     delete:
       tags: [Admin — Variants]
       summary: Remover variação
@@ -524,30 +533,17 @@ paths:
       - $ref: '#/components/parameters/IdPath'
     post:
       tags: [Admin — Images]
-      summary: Upload de imagem para o produto
+      summary: Cadastrar imagem do produto (por URL)
       description: |
-        Se `variant_id` for enviado, a imagem é específica daquela variação.
-        Se `null` ou omitido, é imagem geral do produto.
+        A imagem é referenciada por `url` já hospedada (não há upload binário /
+        storage configurado). Se `variant_id` for enviado, a imagem é específica
+        daquela variação; se `null` ou omitido, é imagem geral do produto.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [file]
-              properties:
-                file:
-                  type: string
-                  format: binary
-                variant_id:
-                  type: integer
-                  nullable: true
-                alt_text:
-                  type: string
-                position:
-                  type: integer
-                  default: 0
+          application/json:
+            schema: { $ref: '#/components/schemas/ImageCreate' }
       responses:
         '201':
           description: Imagem cadastrada
@@ -558,6 +554,8 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/Image' }
         '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /admin/images/{id}:
     parameters:
@@ -830,6 +828,9 @@ paths:
                 type: object
                 properties:
                   data: { $ref: '#/components/schemas/Admin' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
 
   /admin/admins/{id}:
     parameters:
@@ -852,6 +853,10 @@ paths:
                 type: object
                 properties:
                   data: { $ref: '#/components/schemas/Admin' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
     delete:
       tags: [Admin — Administrators]
       summary: Remover admin
@@ -893,6 +898,11 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ValidationError' }
+    Conflict:
+      description: Conflito de unicidade (sku/email já existente)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
 
   schemas:
 
@@ -1088,6 +1098,15 @@ components:
         alt_text: { type: string, nullable: true }
         position: { type: integer, example: 0 }
 
+    ImageCreate:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+        variant_id: { type: integer, nullable: true }
+        alt_text: { type: string, nullable: true }
+        position: { type: integer, minimum: 0, default: 0 }
+
     # ---------- Lead ----------
     Lead:
       type: object
@@ -1212,13 +1231,12 @@ components:
       properties:
         name: { type: string }
         email: { type: string, format: email }
-        password: { type: string, format: password, minLength: 8 }
-        active: { type: boolean, default: true }
+        password: { type: string, format: password, minLength: 6 }
 
     AdminUpdate:
       type: object
       properties:
         name: { type: string }
         email: { type: string, format: email }
-        password: { type: string, format: password, minLength: 8 }
+        password: { type: string, format: password, minLength: 6 }
         active: { type: boolean }
