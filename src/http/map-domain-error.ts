@@ -3,6 +3,7 @@ import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-err
 import { InvalidCredentialsError } from "@/use-cases/errors/invalid-credentials-error";
 import { ProductSkuAlreadyExistsError } from "@/use-cases/errors/product-sku-already-exists-error";
 import { VariantSkuAlreadyExistsError } from "@/use-cases/errors/variant-sku-already-exists-error";
+import { AdminAlreadyExistsError } from "@/use-cases/errors/admin-already-exists-error";
 
 /**
  * Maps known domain errors to their HTTP response (openapi `Error` shape).
@@ -31,6 +32,12 @@ export function mapDomainError(error: unknown, reply: FastifyReply) {
   if (error instanceof VariantSkuAlreadyExistsError) {
     return reply.status(409).send({
       error: { code: "VARIANT_SKU_ALREADY_EXISTS", message: error.message },
+    });
+  }
+
+  if (error instanceof AdminAlreadyExistsError) {
+    return reply.status(409).send({
+      error: { code: "ADMIN_ALREADY_EXISTS", message: error.message },
     });
   }
 
