@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for categories/delete-category.ts</title>
+    <title>Code coverage report for images/delete-image.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,7 +19,7 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">categories</a> delete-category.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">images</a> delete-image.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
@@ -80,8 +80,7 @@
 <a name='L15'></a><a href='#L15'>15</a>
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
-<a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L18'></a><a href='#L18'>18</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -93,25 +92,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { CategoriesRepository } from "@/repositories/categories-repository";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ImagesRepository } from "@/repositories/images-repository";
 import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
 &nbsp;
-interface DeleteCategoryUseCaseRequest {
+interface DeleteImageUseCaseRequest {
   id: number;
 }
 &nbsp;
-export class DeleteCategoryUseCase {
-  constructor(private categoriesRepository: CategoriesRepository) {}
+export class DeleteImageUseCase {
+  constructor(private imagesRepository: ImagesRepository) {}
 &nbsp;
-  async execute({ id }: DeleteCategoryUseCaseRequest): Promise&lt;void&gt; {
-    const deleted = await this.categoriesRepository.delete(id);
-&nbsp;
+  async execute({ id }: DeleteImageUseCaseRequest): Promise&lt;void&gt; {
+    const deleted = await this.imagesRepository.delete(id);
     if (!deleted) {
       throw new ResourceNotFoundError();
     }

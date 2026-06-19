@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for categories/delete-category.ts</title>
+    <title>Code coverage report for products/delete-product.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,7 +19,7 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">categories</a> delete-category.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">products</a> delete-product.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
@@ -89,28 +89,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { CategoriesRepository } from "@/repositories/categories-repository";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ProductsRepository } from "@/repositories/products-repository";
 import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
 &nbsp;
-interface DeleteCategoryUseCaseRequest {
+interface DeleteProductUseCaseRequest {
   id: number;
 }
 &nbsp;
-export class DeleteCategoryUseCase {
-  constructor(private categoriesRepository: CategoriesRepository) {}
+export class DeleteProductUseCase {
+  constructor(private productsRepository: ProductsRepository) {}
 &nbsp;
-  async execute({ id }: DeleteCategoryUseCaseRequest): Promise&lt;void&gt; {
-    const deleted = await this.categoriesRepository.delete(id);
+  async execute({ id }: DeleteProductUseCaseRequest): Promise&lt;void&gt; {
+    const deleted = await this.productsRepository.softDelete(id);
 &nbsp;
     if (!deleted) {
       throw new ResourceNotFoundError();

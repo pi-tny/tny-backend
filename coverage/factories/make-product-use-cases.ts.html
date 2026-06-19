@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for categories/update-category.ts</title>
+    <title>Code coverage report for factories/make-product-use-cases.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">categories</a> update-category.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">factories</a> make-product-use-cases.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -97,7 +97,10 @@
 <a name='L32'></a><a href='#L32'>32</a>
 <a name='L33'></a><a href='#L33'>33</a>
 <a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -108,62 +111,68 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { Category } from "../../../generated/prisma";
-import type { CategoriesRepository } from "@/repositories/categories-repository";
-import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { PrismaProductsRepository } from "@/repositories/prisma/prisma-products-repository";
+import { ListProductsUseCase } from "@/use-cases/products/list-products";
+import { GetProductUseCase } from "@/use-cases/products/get-product";
+import { GetRelatedProductsUseCase } from "@/use-cases/products/get-related-products";
+import { CreateProductUseCase } from "@/use-cases/products/create-product";
+import { UpdateProductUseCase } from "@/use-cases/products/update-product";
+import { DeleteProductUseCase } from "@/use-cases/products/delete-product";
+import { SetProductCategoriesUseCase } from "@/use-cases/products/set-product-categories";
 &nbsp;
-interface UpdateCategoryUseCaseRequest {
-  id: number;
-  name: string;
-  description?: string | null;
+// Manual DI: wire each Product use case to the Prisma repository.
+export function makeListProductsUseCase() {
+  return new ListProductsUseCase(new PrismaProductsRepository());
 }
 &nbsp;
-interface UpdateCategoryUseCaseResponse {
-  category: Category;
+export function makeGetProductUseCase() {
+  return new GetProductUseCase(new PrismaProductsRepository());
 }
 &nbsp;
-export class UpdateCategoryUseCase {
-  constructor(private categoriesRepository: CategoriesRepository) {}
+export function makeGetRelatedProductsUseCase() {
+  return new GetRelatedProductsUseCase(new PrismaProductsRepository());
+}
 &nbsp;
-  async execute({
-    id,
-    name,
-    description,
-  }: UpdateCategoryUseCaseRequest): Promise&lt;UpdateCategoryUseCaseResponse&gt; {
-    const category = await this.categoriesRepository.update(id, {
-      name,
-      description: description ?? null,
-    });
+export function makeCreateProductUseCase() {
+  return new CreateProductUseCase(new PrismaProductsRepository());
+}
 &nbsp;
-    if (!category) {
-      throw new ResourceNotFoundError();
-    }
+export function makeUpdateProductUseCase() {
+  return new UpdateProductUseCase(new PrismaProductsRepository());
+}
 &nbsp;
-    return { category };
-  }
+export function makeDeleteProductUseCase() {
+  return new DeleteProductUseCase(new PrismaProductsRepository());
+}
+&nbsp;
+export function makeSetProductCategoriesUseCase() {
+  return new SetProductCategoriesUseCase(new PrismaProductsRepository());
 }
 &nbsp;</pre></td></tr></table></pre>
 

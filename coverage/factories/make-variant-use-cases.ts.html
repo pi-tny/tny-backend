@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for categories/delete-category.ts</title>
+    <title>Code coverage report for factories/make-variant-use-cases.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,7 +19,7 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">categories</a> delete-category.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">factories</a> make-variant-use-cases.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
@@ -32,14 +32,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -81,7 +81,11 @@
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -89,33 +93,41 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { CategoriesRepository } from "@/repositories/categories-repository";
-import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { PrismaVariantsRepository } from "@/repositories/prisma/prisma-variants-repository";
+import { ListProductVariantsUseCase } from "@/use-cases/variants/list-product-variants";
+import { CreateVariantUseCase } from "@/use-cases/variants/create-variant";
+import { UpdateVariantUseCase } from "@/use-cases/variants/update-variant";
+import { DeleteVariantUseCase } from "@/use-cases/variants/delete-variant";
 &nbsp;
-interface DeleteCategoryUseCaseRequest {
-  id: number;
+// Manual DI: wire each Variant use case to the Prisma repository.
+export function makeListProductVariantsUseCase() {
+  return new ListProductVariantsUseCase(new PrismaVariantsRepository());
 }
 &nbsp;
-export class DeleteCategoryUseCase {
-  constructor(private categoriesRepository: CategoriesRepository) {}
+export function makeCreateVariantUseCase() {
+  return new CreateVariantUseCase(new PrismaVariantsRepository());
+}
 &nbsp;
-  async execute({ id }: DeleteCategoryUseCaseRequest): Promise&lt;void&gt; {
-    const deleted = await this.categoriesRepository.delete(id);
+export function makeUpdateVariantUseCase() {
+  return new UpdateVariantUseCase(new PrismaVariantsRepository());
+}
 &nbsp;
-    if (!deleted) {
-      throw new ResourceNotFoundError();
-    }
-  }
+export function makeDeleteVariantUseCase() {
+  return new DeleteVariantUseCase(new PrismaVariantsRepository());
 }
 &nbsp;</pre></td></tr></table></pre>
 

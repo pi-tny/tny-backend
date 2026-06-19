@@ -18,6 +18,7 @@ import { adminCategoriesRoutes } from "@/http/controllers/admin-categories/route
 import { productsRoutes } from "@/http/controllers/products/routes";
 import { adminProductsRoutes } from "@/http/controllers/admin-products/routes";
 import { adminVariantsRoutes } from "@/http/controllers/admin-variants/routes";
+import { adminImagesRoutes } from "@/http/controllers/admin-images/routes";
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -69,3 +70,4 @@ app.register(adminCategoriesRoutes);
 app.register(productsRoutes);
 app.register(adminProductsRoutes);
 app.register(adminVariantsRoutes);
+app.register(adminImagesRoutes);
