@@ -3,7 +3,8 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 // Creates an admin and returns a valid Bearer token. Signs the JWT directly via
-// the app instance (the auth/login endpoint is a separate TODO feature).
+// the app instance so suites that aren't testing the login flow stay fast; the
+// real /admin/auth/login endpoint is exercised in the auth e2e spec.
 export async function createAndAuthenticate(app: FastifyInstance) {
   const admin = await prisma.admin.create({
     data: {

@@ -12,7 +12,7 @@ Ordem: **Auth → Products → Orders → Leads → Admins**.
 |---|-----------|-------|--------|
 | — | Health | `GET /health` | ✅ done |
 | — | Categories | `GET /categories`, `GET /categories/:id`, `GET/POST /admin/categories`, `PUT/DELETE /admin/categories/:id` | ✅ done (referência) |
-| 1 | Auth | `POST /admin/auth/login`, `GET /admin/auth/me`, `POST /admin/auth/logout` | ⬜ todo |
+| 1 | Auth | `POST /admin/auth/login`, `GET /admin/auth/me`, `POST /admin/auth/logout` | ✅ done |
 | 2 | Products | `GET /products`, `GET /products/:id`, `GET /products/:id/related`, `GET/POST /admin/products`, `PUT/DELETE /admin/products/:id`, `GET/PUT /admin/products/:id/categories` | ⬜ todo |
 | 2b | Variants | `GET/POST /admin/products/:id/variants`, `PUT/DELETE /admin/variants/:id` | ⬜ todo |
 | 2c | Images | `POST /admin/products/:id/images`, `DELETE /admin/images/:id` | ⬜ todo |

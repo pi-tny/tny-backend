@@ -12,6 +12,7 @@ import {
 import { env } from "@/env";
 import { errorHandler } from "@/http/error-handler";
 import { healthRoutes } from "@/http/controllers/health/routes";
+import { adminAuthRoutes } from "@/http/controllers/admin-auth/routes";
 import { categoriesRoutes } from "@/http/controllers/categories/routes";
 import { adminCategoriesRoutes } from "@/http/controllers/admin-categories/routes";
 
@@ -59,5 +60,6 @@ app.setNotFoundHandler((_request, reply) => {
 
 // Routes (registered manually, no autoload — SKILL-1).
 app.register(healthRoutes);
+app.register(adminAuthRoutes);
 app.register(categoriesRoutes);
 app.register(adminCategoriesRoutes);
