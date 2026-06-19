@@ -17,7 +17,7 @@ Ordem: **Auth → Products → Orders → Leads → Admins**.
 | 2b | Variants | `GET/POST /admin/products/:id/variants`, `PUT/DELETE /admin/variants/:id` | ✅ done |
 | 2c | Images | `POST /admin/products/:id/images`, `PUT/DELETE /admin/images/:id` | ✅ done (url JSON, sem upload binário) |
 | 3 | Orders | `POST /orders`, `GET /admin/orders`, `GET /admin/orders/:id`, `PATCH /admin/orders/:id/status` | ✅ done (sem mexer estoque; whatsapp via WHATSAPP_NUMBER) |
-| 4 | Leads | `POST /leads`, `GET /admin/leads`, `DELETE /admin/leads/:id` | ⬜ todo |
+| 4 | Leads | `POST /leads`, `GET /admin/leads`, `DELETE /admin/leads/:id` | ✅ done (upsert por email; list paginada) |
 | 5 | Admins | `GET/POST /admin/admins`, `PUT/DELETE /admin/admins/:id` | ⬜ todo |
 
 ## Regras de negócio a cobrir nos testes
