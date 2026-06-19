@@ -8,6 +8,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   JWT_SECRET: z.string(),
   CORS_ORIGIN: z.string().default("*"),
+  // Store WhatsApp number (digits only, e.g. 5585999999999) used to build the
+  // wa.me link returned when an order is created. Empty = link without a number.
+  WHATSAPP_NUMBER: z.string().default(""),
 });
 
 const _env = envSchema.safeParse(process.env);

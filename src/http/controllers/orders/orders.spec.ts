@@ -1,0 +1,147 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import request from "supertest";
+import { app } from "@/app";
+import { prisma } from "@/lib/prisma";
+import { resetDatabase } from "@/utils/test/reset-database";
+import { createAndAuthenticate } from "@/utils/test/create-and-authenticate";
+
+async function createVariant(overrides: {
+  promotional_price?: number | null;
+  variant_price?: number | null;
+}) {
+  const product = await prisma.product.create({
+    data: {
+      sku: "P-1",
+      name: "Camiseta",
+      description: "x",
+      price: 100,
+      promotional_price: overrides.promotional_price ?? null,
+    },
+  });
+  return prisma.variant.create({
+    data: {
+      product_id: product.id,
+      variant_sku: "V-1",
+      color: "Preto",
+      size: "M",
+      quantity: 10,
+      price: overrides.variant_price ?? null,
+    },
+  });
+}
+
+describe("Orders e2e", () => {
+  beforeAll(async () => {
+    await app.ready();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  beforeEach(async () => {
+    await resetDatabase();
+  });
+
+  it("should create an order, freeze details and return a whatsapp link", async () => {
+    const variant = await createVariant({ variant_price: 80 });
+
+    const response = await request(app.server)
+      .post("/orders")
+      .send({
+        name: "Maria",
+        phone: "+5585999999999",
+        items: [{ variant_id: variant.id, quantity: 2 }],
+      });
+
+    expect(response.statusCode).toBe(201);
+    expect(response.body.data.total).toBe(160);
+    expect(response.body.data.status).toBe("new");
+    expect(response.body.data.whatsapp_url).toContain("https://wa.me/");
+
+    const item = await prisma.orderItem.findFirst();
+    expect(item?.product_name).toBe("Camiseta");
+    expect(item?.unit_price).toBe(80);
+  });
+
+  it("should reject an order with an empty items list", async () => {
+    const response = await request(app.server)
+      .post("/orders")
+      .send({ name: "Maria", phone: "x", items: [] });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("should return 404 when an item references a missing variant", async () => {
+    const response = await request(app.server)
+      .post("/orders")
+      .send({ name: "Maria", phone: "x", items: [{ variant_id: 999, quantity: 1 }] });
+
+    expect(response.statusCode).toBe(404);
+  });
+
+  it("should require auth to list orders", async () => {
+    const response = await request(app.server).get("/admin/orders");
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  it("should list, filter, fetch and update an order status (admin)", async () => {
+    const { token } = await createAndAuthenticate(app);
+    const variant = await createVariant({ promotional_price: 60 });
+    await request(app.server)
+      .post("/orders")
+      .send({
+        name: "Maria",
+        phone: "x",
+        items: [{ variant_id: variant.id, quantity: 1 }],
+      });
+
+    const order = await prisma.order.findFirst();
+
+    const listResponse = await request(app.server)
+      .get("/admin/orders")
+      .set("Authorization", `Bearer ${token}`);
+    expect(listResponse.statusCode).toBe(200);
+    expect(listResponse.body.data).toHaveLength(1);
+
+    const getResponse = await request(app.server)
+      .get(`/admin/orders/${order!.id}`)
+      .set("Authorization", `Bearer ${token}`);
+    expect(getResponse.statusCode).toBe(200);
+    expect(getResponse.body.data.items[0].unit_price).toBe(60);
+
+    const patchResponse = await request(app.server)
+      .patch(`/admin/orders/${order!.id}/status`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ status: "fulfilled" });
+    expect(patchResponse.statusCode).toBe(200);
+    expect(patchResponse.body.data.status).toBe("fulfilled");
+
+    const filtered = await request(app.server)
+      .get("/admin/orders?status=ignored")
+      .set("Authorization", `Bearer ${token}`);
+    expect(filtered.body.data).toHaveLength(0);
+  });
+
+  it("should reject an invalid status value", async () => {
+    const { token } = await createAndAuthenticate(app);
+    const variant = await createVariant({ variant_price: 50 });
+    await request(app.server)
+      .post("/orders")
+      .send({
+        name: "Maria",
+        phone: "x",
+        items: [{ variant_id: variant.id, quantity: 1 }],
+      });
+    const order = await prisma.order.findFirst();
+
+    const response = await request(app.server)
+      .patch(`/admin/orders/${order!.id}/status`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ status: "shipped" });
+
+    expect(response.statusCode).toBe(400);
+  });
+});
