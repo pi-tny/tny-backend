@@ -50,7 +50,7 @@ tags:
   - name: Orders (public)
     description: Registro de pedidos antes do redirecionamento ao WhatsApp.
   - name: Leads (public)
-    description: Cadastro opcional para newsletter/promoções (RF005).
+    description: Cadastro opcional para newsletter/promoções.
   - name: Authentication
     description: Login e sessão do administrador.
   - name: Admin — Products
@@ -66,7 +66,7 @@ security: []
 paths:
 
   # ============================================================
-  # PUBLIC — CATEGORIES (RF001)
+  # PUBLIC — CATEGORIES
   # ============================================================
   /categories:
     get:
@@ -102,15 +102,15 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
 
   # ============================================================
-  # PUBLIC — PRODUCTS (RF002, RF009, UC008)
+  # PUBLIC — PRODUCTS
   # ============================================================
   /products:
     get:
       tags: [Products (public)]
       summary: Listar produtos (com filtros e busca)
       description: |
-        Retorna produtos ativos. Suporta filtro por categoria e busca por nome
-        (RF009). Cada produto traz `cover_image` resolvida e `price` base
+        Retorna produtos ativos. Suporta filtro por categoria e busca por nome.
+        Cada produto traz `cover_image` resolvida e `price` base
         (e `promotional_price` se em promoção).
       parameters:
         - in: query
@@ -186,7 +186,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
 
   # ============================================================
-  # PUBLIC — ORDERS (RF004)
+  # PUBLIC — ORDERS
   # ============================================================
   /orders:
     post:
@@ -220,7 +220,7 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
 
   # ============================================================
-  # PUBLIC — LEADS (RF005)
+  # PUBLIC — LEADS
   # ============================================================
   /leads:
     post:
@@ -247,7 +247,7 @@ paths:
         '400': { $ref: '#/components/responses/ValidationError' }
 
   # ============================================================
-  # AUTHENTICATION (RNF003)
+  # AUTHENTICATION
   # ============================================================
   /admin/auth/login:
     post:
@@ -309,7 +309,7 @@ paths:
         '204': { description: Sessão encerrada }
 
   # ============================================================
-  # ADMIN — PRODUCTS (RF010, UC005)
+  # ADMIN — PRODUCTS
   # ============================================================
   /admin/products:
     get:
@@ -595,7 +595,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
 
   # ============================================================
-  # ADMIN — CATEGORIES (UC006)
+  # ADMIN — CATEGORIES
   # ============================================================
   /admin/categories:
     get:
@@ -1129,7 +1129,7 @@ components:
         marketing_consent:
           type: boolean
           default: true
-          description: Padrão `true` — o RF005 é explicitamente opt-in.
+          description: Padrão `true` — o cadastro é explicitamente opt-in.
 
     # ---------- Order ----------
     OrderItemCreate:
