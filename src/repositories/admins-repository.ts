@@ -1,8 +1,23 @@
 import type { Admin } from "../../generated/prisma";
 
-// ISP: only the methods the auth use cases need. Admin management (create/list/
-// update/delete) will extend this interface in its own slice.
+export interface CreateAdminData {
+  name: string;
+  email: string;
+  password_hash: string;
+}
+
+export interface UpdateAdminData {
+  name?: string;
+  email?: string;
+  password_hash?: string;
+  active?: boolean;
+}
+
 export interface AdminsRepository {
   findByEmail(email: string): Promise<Admin | null>;
   findById(id: number): Promise<Admin | null>;
+  findMany(): Promise<Admin[]>;
+  create(data: CreateAdminData): Promise<Admin>;
+  update(id: number, data: UpdateAdminData): Promise<Admin | null>;
+  delete(id: number): Promise<boolean>;
 }
