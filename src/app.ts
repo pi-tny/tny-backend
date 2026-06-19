@@ -15,6 +15,8 @@ import { healthRoutes } from "@/http/controllers/health/routes";
 import { adminAuthRoutes } from "@/http/controllers/admin-auth/routes";
 import { categoriesRoutes } from "@/http/controllers/categories/routes";
 import { adminCategoriesRoutes } from "@/http/controllers/admin-categories/routes";
+import { productsRoutes } from "@/http/controllers/products/routes";
+import { adminProductsRoutes } from "@/http/controllers/admin-products/routes";
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -63,3 +65,5 @@ app.register(healthRoutes);
 app.register(adminAuthRoutes);
 app.register(categoriesRoutes);
 app.register(adminCategoriesRoutes);
+app.register(productsRoutes);
+app.register(adminProductsRoutes);
