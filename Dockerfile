@@ -1,7 +1,9 @@
 # Single-stage image targeting Postgres. Runs via tsx so Prisma's driver-adapter
 # runtime and the generated client work without a bundling step (the app is
 # small; favour reliability over image size for now).
-FROM node:22-bookworm-slim
+# node 24 ships npm 11, which matches the lockfile (lockfileVersion 3 written by
+# npm 11); node 22's npm 10 rejects it, so pin 24 to keep `npm ci` reproducible.
+FROM node:24-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -12,9 +14,8 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-# install all deps (tsx is needed to run the server). npm install (not ci) is
-# used because the committed lockfile is currently out of sync with package.json.
-RUN npm install --no-audit --no-fund
+# install all deps (tsx is needed to run the server)
+RUN npm ci --no-audit --no-fund
 
 COPY . .
 
