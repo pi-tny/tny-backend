@@ -54,6 +54,22 @@ export interface OrderDetail extends OrderSummary {
   items: OrderItemView[];
 }
 
+export interface ListOrdersFilters {
+  status?: string;
+  // inclusive lower bound / exclusive upper bound on created_at
+  createdFrom?: Date;
+  createdBefore?: Date;
+  page: number;
+  limit: number;
+}
+
+export interface OrderListResult {
+  items: OrderSummary[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface OrdersRepository {
   // snapshot used to freeze item details + resolve price; null when missing
   findVariantSnapshot(variantId: number): Promise<OrderVariantSnapshot | null>;
@@ -61,7 +77,7 @@ export interface OrdersRepository {
     data: CreateOrderData,
     items: ResolvedOrderItem[],
   ): Promise<OrderDetail>;
-  listAdmin(status?: string): Promise<OrderSummary[]>;
+  list(filters: ListOrdersFilters): Promise<OrderListResult>;
   findById(id: number): Promise<OrderDetail | null>;
   updateStatus(id: number, status: string): Promise<OrderDetail | null>;
 }

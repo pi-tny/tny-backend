@@ -2,6 +2,7 @@ import { Prisma } from "../../../generated/prisma";
 import { prisma } from "@/lib/prisma";
 import type {
   CreateOrderData,
+  ListOrdersFilters,
   OrderDetail,
   OrdersRepository,
   ResolvedOrderItem,
@@ -78,19 +79,39 @@ export class PrismaOrdersRepository implements OrdersRepository {
     return toDetail(order);
   }
 
-  async listAdmin(status?: string) {
-    const orders = await prisma.order.findMany({
-      where: status ? { status } : undefined,
-      orderBy: { id: "desc" },
-    });
-    return orders.map((order) => ({
-      id: order.id,
-      name: order.name,
-      phone: order.phone,
-      total: order.total,
-      status: order.status,
-      created_at: order.created_at,
-    }));
+  async list(filters: ListOrdersFilters) {
+    const createdAt =
+      filters.createdFrom || filters.createdBefore
+        ? { gte: filters.createdFrom, lt: filters.createdBefore }
+        : undefined;
+    const where: Prisma.OrderWhereInput = {
+      ...(filters.status ? { status: filters.status } : {}),
+      ...(createdAt ? { created_at: createdAt } : {}),
+    };
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        orderBy: { id: "desc" },
+        skip: (filters.page - 1) * filters.limit,
+        take: filters.limit,
+      }),
+      prisma.order.count({ where }),
+    ]);
+
+    return {
+      items: orders.map((order) => ({
+        id: order.id,
+        name: order.name,
+        phone: order.phone,
+        total: order.total,
+        status: order.status,
+        created_at: order.created_at,
+      })),
+      total,
+      page: filters.page,
+      limit: filters.limit,
+    };
   }
 
   async findById(id: number) {

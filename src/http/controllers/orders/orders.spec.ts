@@ -105,6 +105,8 @@ describe("Orders e2e", () => {
       .set("Authorization", `Bearer ${token}`);
     expect(listResponse.statusCode).toBe(200);
     expect(listResponse.body.data).toHaveLength(1);
+    expect(listResponse.body.meta.total).toBe(1);
+    expect(listResponse.body.meta.total_pages).toBe(1);
 
     const getResponse = await request(app.server)
       .get(`/admin/orders/${order!.id}`)
@@ -143,5 +145,33 @@ describe("Orders e2e", () => {
       .send({ status: "shipped" });
 
     expect(response.statusCode).toBe(400);
+  });
+
+  it("should filter the admin order list by date range", async () => {
+    const { token } = await createAndAuthenticate(app);
+    await prisma.order.create({
+      data: {
+        name: "Old",
+        phone: "x",
+        total: 10,
+        created_at: new Date("2026-06-10T12:00:00Z"),
+      },
+    });
+    await prisma.order.create({
+      data: {
+        name: "Recent",
+        phone: "x",
+        total: 10,
+        created_at: new Date("2026-06-20T12:00:00Z"),
+      },
+    });
+
+    const response = await request(app.server)
+      .get("/admin/orders?date_from=2026-06-09&date_to=2026-06-15")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].name).toBe("Old");
   });
 });

@@ -1,5 +1,6 @@
 import type {
   CreateOrderData,
+  ListOrdersFilters,
   OrderDetail,
   OrderItemView,
   OrderSummary,
@@ -50,10 +51,23 @@ export class InMemoryOrdersRepository implements OrdersRepository {
     return order;
   }
 
-  async listAdmin(status?: string) {
-    return this.items
-      .filter((order) => (status ? order.status === status : true))
-      .sort((a, b) => b.id - a.id)
+  async list(filters: ListOrdersFilters) {
+    let result = this.items.filter((order) => {
+      if (filters.status && order.status !== filters.status) return false;
+      if (filters.createdFrom && order.created_at < filters.createdFrom) {
+        return false;
+      }
+      if (filters.createdBefore && order.created_at >= filters.createdBefore) {
+        return false;
+      }
+      return true;
+    });
+
+    result = result.sort((a, b) => b.id - a.id);
+    const total = result.length;
+    const start = (filters.page - 1) * filters.limit;
+    const items = result
+      .slice(start, start + filters.limit)
       .map(
         (order): OrderSummary => ({
           id: order.id,
@@ -64,6 +78,8 @@ export class InMemoryOrdersRepository implements OrdersRepository {
           created_at: order.created_at,
         }),
       );
+
+    return { items, total, page: filters.page, limit: filters.limit };
   }
 
   async findById(id: number) {

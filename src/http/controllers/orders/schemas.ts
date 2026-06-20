@@ -46,6 +46,10 @@ export const orderIdParamSchema = z.object({
 
 export const listOrdersQuerySchema = z.object({
   status: z.enum(orderStatuses).optional(),
+  date_from: z.coerce.date().optional(),
+  date_to: z.coerce.date().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 export const updateOrderStatusSchema = z.object({

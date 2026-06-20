@@ -17,6 +17,7 @@ import {
   orderSummarySchema,
   updateOrderStatusSchema,
 } from "@/http/controllers/orders/schemas";
+import { paginationMetaSchema } from "@/http/controllers/products/schemas";
 
 const tags = ["Admin — Orders"];
 
@@ -32,7 +33,10 @@ export async function adminOrdersRoutes(app: FastifyInstance) {
         tags,
         querystring: listOrdersQuerySchema,
         response: {
-          200: dataResponse(z.array(orderSummarySchema)),
+          200: z.object({
+            data: z.array(orderSummarySchema),
+            meta: paginationMetaSchema,
+          }),
           401: errorResponseSchema,
         },
       },
