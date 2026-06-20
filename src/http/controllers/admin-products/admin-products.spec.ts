@@ -178,4 +178,29 @@ describe("Admin Products e2e", () => {
     expect(response.body.data).toHaveLength(1);
     expect(response.body.data[0].id).toBe(b.id);
   });
+
+  it("should require auth on every write verb", async () => {
+    const post = await request(app.server)
+      .post("/admin/products")
+      .send({ sku: "x", name: "x", description: "x", price: 1 });
+    const put = await request(app.server)
+      .put("/admin/products/1")
+      .send({ name: "x" });
+    const del = await request(app.server).delete("/admin/products/1");
+
+    expect(post.statusCode).toBe(401);
+    expect(put.statusCode).toBe(401);
+    expect(del.statusCode).toBe(401);
+  });
+
+  it("should reject a negative price", async () => {
+    const { token } = await createAndAuthenticate(app);
+
+    const response = await request(app.server)
+      .post("/admin/products")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ sku: "N", name: "N", description: "x", price: -1 });
+
+    expect(response.statusCode).toBe(400);
+  });
 });

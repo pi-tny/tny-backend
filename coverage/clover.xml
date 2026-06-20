@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1781968479196" clover="3.2.0">
-  <project timestamp="1781968479197" name="All files">
-    <metrics statements="211" coveredstatements="211" conditionals="90" coveredconditionals="88" methods="102" coveredmethods="102" elements="403" coveredelements="401" complexity="0" loc="211" ncloc="211" packages="10" files="45" classes="45"/>
+<coverage generated="1781970861472" clover="3.2.0">
+  <project timestamp="1781970861472" name="All files">
+    <metrics statements="222" coveredstatements="221" conditionals="104" coveredconditionals="103" methods="103" coveredmethods="103" elements="429" coveredelements="427" complexity="0" loc="222" ncloc="222" packages="10" files="46" classes="46"/>
     <package name="admins">
-      <metrics statements="24" coveredstatements="24" conditionals="14" coveredconditionals="13" methods="8" coveredmethods="8"/>
+      <metrics statements="24" coveredstatements="24" conditionals="14" coveredconditionals="14" methods="8" coveredmethods="8"/>
       <file name="create-admin.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/admins/create-admin.ts">
         <metrics statements="7" coveredstatements="7" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
         <line num="17" count="4" type="stmt"/>
@@ -28,17 +28,17 @@
         <line num="13" count="2" type="stmt"/>
       </file>
       <file name="update-admin.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/admins/update-admin.ts">
-        <metrics statements="10" coveredstatements="10" conditionals="10" coveredconditionals="9" methods="2" coveredmethods="2"/>
-        <line num="20" count="5" type="stmt"/>
-        <line num="29" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="30" count="1" type="stmt"/>
-        <line num="31" count="1" type="cond" truecount="3" falsecount="1"/>
+        <metrics statements="10" coveredstatements="10" conditionals="10" coveredconditionals="10" methods="2" coveredmethods="2"/>
+        <line num="20" count="7" type="stmt"/>
+        <line num="29" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="30" count="3" type="stmt"/>
+        <line num="31" count="3" type="cond" truecount="4" falsecount="0"/>
         <line num="32" count="1" type="stmt"/>
-        <line num="37" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="39" count="5" type="stmt"/>
-        <line num="45" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="37" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="39" count="7" type="stmt"/>
+        <line num="45" count="6" type="cond" truecount="2" falsecount="0"/>
         <line num="46" count="2" type="stmt"/>
-        <line num="49" count="2" type="stmt"/>
+        <line num="49" count="4" type="stmt"/>
       </file>
     </package>
     <package name="auth">
@@ -102,7 +102,7 @@
       </file>
     </package>
     <package name="errors">
-      <metrics statements="10" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="5"/>
+      <metrics statements="12" coveredstatements="12" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="6"/>
       <file name="admin-already-exists-error.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/errors/admin-already-exists-error.ts">
         <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="3" count="3" type="stmt"/>
@@ -112,6 +112,11 @@
         <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="3" count="4" type="stmt"/>
         <line num="4" count="4" type="stmt"/>
+      </file>
+      <file name="invalid-promotional-price-error.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/errors/invalid-promotional-price-error.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
       </file>
       <file name="product-sku-already-exists-error.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/errors/product-sku-already-exists-error.ts">
         <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
@@ -175,7 +180,7 @@
         <line num="12" count="3" type="stmt"/>
         <line num="16" count="5" type="stmt"/>
         <line num="20" count="1" type="stmt"/>
-        <line num="24" count="2" type="stmt"/>
+        <line num="24" count="3" type="stmt"/>
         <line num="28" count="2" type="stmt"/>
         <line num="32" count="1" type="stmt"/>
         <line num="36" count="1" type="stmt"/>
@@ -278,15 +283,17 @@
       </file>
     </package>
     <package name="products">
-      <metrics statements="38" coveredstatements="38" conditionals="22" coveredconditionals="22" methods="14" coveredmethods="14"/>
+      <metrics statements="47" coveredstatements="46" conditionals="36" coveredconditionals="35" methods="14" coveredmethods="14"/>
       <file name="create-product.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/products/create-product.ts">
-        <metrics statements="6" coveredstatements="6" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
-        <line num="22" count="5" type="stmt"/>
-        <line num="27" count="6" type="stmt"/>
-        <line num="29" count="6" type="cond" truecount="2" falsecount="0"/>
-        <line num="30" count="2" type="stmt"/>
-        <line num="33" count="4" type="stmt"/>
-        <line num="35" count="4" type="stmt"/>
+        <metrics statements="8" coveredstatements="8" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="23" count="7" type="stmt"/>
+        <line num="28" count="8" type="stmt"/>
+        <line num="30" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="31" count="2" type="stmt"/>
+        <line num="34" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="35" count="2" type="stmt"/>
+        <line num="38" count="4" type="stmt"/>
+        <line num="40" count="4" type="stmt"/>
       </file>
       <file name="delete-product.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/products/delete-product.ts">
         <metrics statements="4" coveredstatements="4" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
@@ -327,20 +334,27 @@
         <line num="30" count="2" type="stmt"/>
       </file>
       <file name="update-product.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/products/update-product.ts">
-        <metrics statements="9" coveredstatements="9" conditionals="8" coveredconditionals="8" methods="2" coveredmethods="2"/>
-        <line num="24" count="6" type="stmt"/>
-        <line num="30" count="6" type="cond" truecount="2" falsecount="0"/>
-        <line num="31" count="2" type="stmt"/>
-        <line num="32" count="2" type="cond" truecount="4" falsecount="0"/>
-        <line num="33" count="1" type="stmt"/>
-        <line num="37" count="5" type="stmt"/>
-        <line num="39" count="5" type="cond" truecount="2" falsecount="0"/>
+        <metrics statements="16" coveredstatements="15" conditionals="18" coveredconditionals="17" methods="2" coveredmethods="2"/>
+        <line num="25" count="8" type="stmt"/>
+        <line num="31" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="33" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="38" count="7" type="stmt"/>
+        <line num="39" count="7" type="cond" truecount="2" falsecount="0"/>
         <line num="40" count="2" type="stmt"/>
-        <line num="43" count="3" type="stmt"/>
+        <line num="45" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="47" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="50" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="57" count="4" type="stmt"/>
+        <line num="59" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="63" count="4" type="stmt"/>
       </file>
     </package>
     <package name="variants">
-      <metrics statements="24" coveredstatements="24" conditionals="14" coveredconditionals="13" methods="8" coveredmethods="8"/>
+      <metrics statements="24" coveredstatements="24" conditionals="14" coveredconditionals="14" methods="8" coveredmethods="8"/>
       <file name="create-variant.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/variants/create-variant.ts">
         <metrics statements="8" coveredstatements="8" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
         <line num="20" count="7" type="stmt"/>
@@ -366,16 +380,16 @@
         <line num="19" count="3" type="stmt"/>
       </file>
       <file name="update-variant.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/variants/update-variant.ts">
-        <metrics statements="9" coveredstatements="9" conditionals="8" coveredconditionals="7" methods="2" coveredmethods="2"/>
-        <line num="20" count="4" type="stmt"/>
-        <line num="26" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="27" count="1" type="stmt"/>
-        <line num="30" count="1" type="cond" truecount="3" falsecount="1"/>
+        <metrics statements="9" coveredstatements="9" conditionals="8" coveredconditionals="8" methods="2" coveredmethods="2"/>
+        <line num="20" count="6" type="stmt"/>
+        <line num="26" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="3" type="stmt"/>
+        <line num="30" count="3" type="cond" truecount="4" falsecount="0"/>
         <line num="31" count="1" type="stmt"/>
-        <line num="35" count="3" type="stmt"/>
-        <line num="36" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="5" type="stmt"/>
+        <line num="36" count="5" type="cond" truecount="2" falsecount="0"/>
         <line num="37" count="1" type="stmt"/>
-        <line num="40" count="2" type="stmt"/>
+        <line num="40" count="4" type="stmt"/>
       </file>
     </package>
   </project>

@@ -113,4 +113,18 @@ describe("Admin Categories e2e", () => {
 
     expect(response.statusCode).toBe(404);
   });
+
+  it("should require auth on every write verb", async () => {
+    const post = await request(app.server)
+      .post("/admin/categories")
+      .send({ name: "x" });
+    const put = await request(app.server)
+      .put("/admin/categories/1")
+      .send({ name: "x" });
+    const del = await request(app.server).delete("/admin/categories/1");
+
+    expect(post.statusCode).toBe(401);
+    expect(put.statusCode).toBe(401);
+    expect(del.statusCode).toBe(401);
+  });
 });

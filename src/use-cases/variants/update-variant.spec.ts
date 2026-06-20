@@ -55,4 +55,28 @@ describe("Update Variant Use Case", () => {
       sut.execute({ id: second.id, variant_sku: "V-1" }),
     ).rejects.toBeInstanceOf(VariantSkuAlreadyExistsError);
   });
+
+  it("should allow keeping its own sku", async () => {
+    const created = await seed("V-1");
+
+    const { variant } = await sut.execute({
+      id: created.id,
+      variant_sku: "V-1",
+      quantity: 3,
+    });
+
+    expect(variant.variant_sku).toBe("V-1");
+    expect(variant.quantity).toBe(3);
+  });
+
+  it("should allow changing to an unused sku", async () => {
+    const created = await seed("V-1");
+
+    const { variant } = await sut.execute({
+      id: created.id,
+      variant_sku: "V-9",
+    });
+
+    expect(variant.variant_sku).toBe("V-9");
+  });
 });

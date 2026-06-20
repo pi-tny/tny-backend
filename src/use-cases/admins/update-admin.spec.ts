@@ -49,4 +49,28 @@ describe("Update Admin Use Case", () => {
       sut.execute({ id: second.id, email: "first@tny.dev" }),
     ).rejects.toBeInstanceOf(AdminAlreadyExistsError);
   });
+
+  it("should allow keeping its own email", async () => {
+    const admin = await seed("admin@tny.dev");
+
+    const { admin: updated } = await sut.execute({
+      id: admin.id,
+      email: "admin@tny.dev",
+      name: "Renamed",
+    });
+
+    expect(updated.email).toBe("admin@tny.dev");
+    expect(updated.name).toBe("Renamed");
+  });
+
+  it("should allow changing to an unused email", async () => {
+    const admin = await seed("admin@tny.dev");
+
+    const { admin: updated } = await sut.execute({
+      id: admin.id,
+      email: "new@tny.dev",
+    });
+
+    expect(updated.email).toBe("new@tny.dev");
+  });
 });

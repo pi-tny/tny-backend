@@ -85,4 +85,10 @@ describe("Leads e2e", () => {
 
     expect(response.statusCode).toBe(404);
   });
+
+  it("should require auth to delete a lead", async () => {
+    const response = await request(app.server).delete("/admin/leads/1");
+
+    expect(response.statusCode).toBe(401);
+  });
 });

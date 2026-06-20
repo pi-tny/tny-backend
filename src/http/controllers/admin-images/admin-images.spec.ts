@@ -90,4 +90,18 @@ describe("Admin Images e2e", () => {
 
     expect(response.statusCode).toBe(404);
   });
+
+  it("should require auth on every write verb", async () => {
+    const post = await request(app.server)
+      .post("/admin/products/1/images")
+      .send({ url: "a.jpg" });
+    const put = await request(app.server)
+      .put("/admin/images/1")
+      .send({ position: 1 });
+    const del = await request(app.server).delete("/admin/images/1");
+
+    expect(post.statusCode).toBe(401);
+    expect(put.statusCode).toBe(401);
+    expect(del.statusCode).toBe(401);
+  });
 });

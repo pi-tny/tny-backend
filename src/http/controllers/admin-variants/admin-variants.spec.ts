@@ -127,4 +127,30 @@ describe("Admin Variants e2e", () => {
 
     expect(response.statusCode).toBe(404);
   });
+
+  it("should require auth on every write verb", async () => {
+    const post = await request(app.server)
+      .post("/admin/products/1/variants")
+      .send({ variant_sku: "V", color: "c", size: "s", quantity: 1 });
+    const put = await request(app.server)
+      .put("/admin/variants/1")
+      .send({ quantity: 1 });
+    const del = await request(app.server).delete("/admin/variants/1");
+
+    expect(post.statusCode).toBe(401);
+    expect(put.statusCode).toBe(401);
+    expect(del.statusCode).toBe(401);
+  });
+
+  it("should reject a negative quantity", async () => {
+    const { token } = await createAndAuthenticate(app);
+    const product = await createProduct();
+
+    const response = await request(app.server)
+      .post(`/admin/products/${product.id}/variants`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ variant_sku: "V-1", color: "Preto", size: "M", quantity: -1 });
+
+    expect(response.statusCode).toBe(400);
+  });
 });

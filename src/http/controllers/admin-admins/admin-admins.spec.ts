@@ -101,4 +101,18 @@ describe("Admin Administrators e2e", () => {
 
     expect(response.statusCode).toBe(404);
   });
+
+  it("should require auth on every write verb", async () => {
+    const post = await request(app.server)
+      .post("/admin/admins")
+      .send({ name: "x", email: "x@tny.dev", password: "password123" });
+    const put = await request(app.server)
+      .put("/admin/admins/1")
+      .send({ name: "x" });
+    const del = await request(app.server).delete("/admin/admins/1");
+
+    expect(post.statusCode).toBe(401);
+    expect(put.statusCode).toBe(401);
+    expect(del.statusCode).toBe(401);
+  });
 });

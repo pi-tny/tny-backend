@@ -192,4 +192,14 @@ describe("Orders e2e", () => {
     expect(response.body.data).toHaveLength(1);
     expect(response.body.data[0].name).toBe("Old");
   });
+
+  it("should require auth on admin order read/update routes", async () => {
+    const detail = await request(app.server).get("/admin/orders/1");
+    const patch = await request(app.server)
+      .patch("/admin/orders/1/status")
+      .send({ status: "fulfilled" });
+
+    expect(detail.statusCode).toBe(401);
+    expect(patch.statusCode).toBe(401);
+  });
 });

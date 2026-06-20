@@ -114,4 +114,23 @@ describe("Products (public) e2e", () => {
     expect(response.body.data).toHaveLength(1);
     expect(response.body.data[0].name).toBe("Sibling");
   });
+
+  it("should return 400 for a non-numeric product id", async () => {
+    const response = await request(app.server).get("/products/abc");
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("should return 400 when limit exceeds the maximum", async () => {
+    const response = await request(app.server).get("/products?limit=101");
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it("should return 400 when page is below 1", async () => {
+    const response = await request(app.server).get("/products?page=0");
+
+    expect(response.statusCode).toBe(400);
+  });
 });
