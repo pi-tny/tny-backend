@@ -105,9 +105,10 @@ paths:
       tags: [Products (public)]
       summary: Listar produtos (com filtros e busca)
       description: |
-        Retorna produtos ativos. Suporta filtro por categoria e busca por nome.
-        Cada produto traz `cover_image` resolvida e `price` base
-        (e `promotional_price` se em promoção).
+        Retorna produtos ativos. Suporta busca por nome, filtro por categoria,
+        faixa de preço (base), promoção e estoque, além de ordenação. Cada
+        produto traz `cover_image` resolvida e `price` base (e `promotional_price`
+        se em promoção).
       parameters:
         - in: query
           name: category_id
@@ -116,6 +117,11 @@ paths:
           name: q
           schema: { type: string }
           description: Busca por nome do produto (case-insensitive, parcial).
+        - $ref: '#/components/parameters/MinPrice'
+        - $ref: '#/components/parameters/MaxPrice'
+        - $ref: '#/components/parameters/OnSale'
+        - $ref: '#/components/parameters/InStock'
+        - $ref: '#/components/parameters/ProductSort'
         - in: query
           name: page
           schema: { type: integer, default: 1, minimum: 1 }
@@ -315,6 +321,11 @@ paths:
         - in: query
           name: q
           schema: { type: string }
+        - $ref: '#/components/parameters/MinPrice'
+        - $ref: '#/components/parameters/MaxPrice'
+        - $ref: '#/components/parameters/OnSale'
+        - $ref: '#/components/parameters/InStock'
+        - $ref: '#/components/parameters/ProductSort'
         - in: query
           name: page
           schema: { type: integer, default: 1 }
@@ -857,6 +868,34 @@ components:
       name: id
       required: true
       schema: { type: integer }
+    MinPrice:
+      in: query
+      name: min_price
+      description: Preço base mínimo.
+      schema: { type: number, format: float, minimum: 0 }
+    MaxPrice:
+      in: query
+      name: max_price
+      description: Preço base máximo.
+      schema: { type: number, format: float, minimum: 0 }
+    OnSale:
+      in: query
+      name: on_sale
+      description: Apenas produtos com promotional_price preenchido.
+      schema: { type: boolean }
+    InStock:
+      in: query
+      name: in_stock
+      description: Apenas produtos com alguma variante em estoque (quantity > 0).
+      schema: { type: boolean }
+    ProductSort:
+      in: query
+      name: sort
+      description: Ordenação da lista.
+      schema:
+        type: string
+        enum: [newest, oldest, price_asc, price_desc, name]
+        default: newest
 
   responses:
     NotFound:

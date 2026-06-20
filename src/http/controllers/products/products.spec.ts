@@ -133,4 +133,70 @@ describe("Products (public) e2e", () => {
 
     expect(response.statusCode).toBe(400);
   });
+
+  it("should filter by price range and sort by price", async () => {
+    await prisma.product.create({
+      data: { sku: "a", name: "Cheap", description: "x", price: 10 },
+    });
+    await prisma.product.create({
+      data: { sku: "b", name: "Mid", description: "x", price: 50 },
+    });
+    await prisma.product.create({
+      data: { sku: "c", name: "Pricey", description: "x", price: 100 },
+    });
+
+    const ranged = await request(app.server).get(
+      "/products?min_price=20&max_price=80",
+    );
+    expect(ranged.body.data).toHaveLength(1);
+    expect(ranged.body.data[0].name).toBe("Mid");
+
+    const sorted = await request(app.server).get("/products?sort=price_asc");
+    expect(sorted.body.data.map((p: { price: number }) => p.price)).toEqual([
+      10, 50, 100,
+    ]);
+  });
+
+  it("should filter on_sale products", async () => {
+    await prisma.product.create({
+      data: { sku: "a", name: "Full", description: "x", price: 50 },
+    });
+    await prisma.product.create({
+      data: {
+        sku: "b",
+        name: "Promo",
+        description: "x",
+        price: 50,
+        promotional_price: 30,
+      },
+    });
+
+    const response = await request(app.server).get("/products?on_sale=true");
+
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].name).toBe("Promo");
+  });
+
+  it("should filter in_stock products", async () => {
+    const stocked = await prisma.product.create({
+      data: { sku: "a", name: "InStock", description: "x", price: 10 },
+    });
+    await prisma.product.create({
+      data: { sku: "b", name: "OutOfStock", description: "x", price: 10 },
+    });
+    await prisma.variant.create({
+      data: {
+        product_id: stocked.id,
+        variant_sku: "V-1",
+        color: "Preto",
+        size: "M",
+        quantity: 5,
+      },
+    });
+
+    const response = await request(app.server).get("/products?in_stock=true");
+
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].name).toBe("InStock");
+  });
 });

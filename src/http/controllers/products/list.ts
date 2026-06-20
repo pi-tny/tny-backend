@@ -6,11 +6,17 @@ export async function list(
   request: FastifyRequest<{ Querystring: ListProductsQuery }>,
   reply: FastifyReply,
 ) {
-  const { category_id, q, page, limit } = request.query;
+  const { category_id, q, min_price, max_price, on_sale, in_stock, sort, page, limit } =
+    request.query;
 
   const { result } = await makeListProductsUseCase().execute({
     categoryId: category_id,
     q,
+    minPrice: min_price,
+    maxPrice: max_price,
+    onSale: on_sale,
+    inStock: in_stock,
+    sort,
     active: true,
     page,
     limit,

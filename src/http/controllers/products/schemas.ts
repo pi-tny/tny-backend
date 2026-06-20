@@ -57,12 +57,34 @@ export const productListResponseSchema = z.object({
 });
 
 // ---- request shapes ----
-export const listProductsQuerySchema = z.object({
+// A string query param needs an explicit true/false mapping (z.coerce.boolean
+// treats any non-empty string as true).
+export const booleanQuery = z
+  .enum(["true", "false"])
+  .transform((value) => value === "true");
+
+export const productSortValues = [
+  "newest",
+  "oldest",
+  "price_asc",
+  "price_desc",
+  "name",
+] as const;
+
+// Shared filter fields for the public and admin product listings.
+export const productFilterFields = {
   category_id: z.coerce.number().int().positive().optional(),
   q: z.string().optional(),
+  min_price: z.coerce.number().min(0).optional(),
+  max_price: z.coerce.number().min(0).optional(),
+  on_sale: booleanQuery.optional(),
+  in_stock: booleanQuery.optional(),
+  sort: z.enum(productSortValues).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-});
+};
+
+export const listProductsQuerySchema = z.object(productFilterFields);
 
 export const relatedQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(12).default(4),

@@ -1,17 +1,14 @@
 import { z } from "zod";
+import {
+  booleanQuery,
+  productFilterFields,
+} from "@/http/controllers/products/schemas";
 
-// admin list accepts an explicit active filter; absent = all products. A string
-// query param needs an explicit true/false mapping (z.coerce.boolean treats any
-// non-empty string as true).
+// admin list reuses the public filters and adds an explicit active filter;
+// absent active = all products (including inactive).
 export const adminListProductsQuerySchema = z.object({
-  active: z
-    .enum(["true", "false"])
-    .transform((value) => value === "true")
-    .optional(),
-  category_id: z.coerce.number().int().positive().optional(),
-  q: z.string().optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  ...productFilterFields,
+  active: booleanQuery.optional(),
 });
 
 export const productCreateSchema = z.object({
