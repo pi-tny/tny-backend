@@ -65,9 +65,7 @@ security: []
 
 paths:
 
-  # ============================================================
-  # PUBLIC — CATEGORIES
-  # ============================================================
+  # public: categories
   /categories:
     get:
       tags: [Categories (public)]
@@ -101,9 +99,7 @@ paths:
                   data: { $ref: '#/components/schemas/Category' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # PUBLIC — PRODUCTS
-  # ============================================================
+  # public: products
   /products:
     get:
       tags: [Products (public)]
@@ -185,9 +181,7 @@ paths:
                     items: { $ref: '#/components/schemas/ProductSummary' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # PUBLIC — ORDERS
-  # ============================================================
+  # public: orders
   /orders:
     post:
       tags: [Orders (public)]
@@ -219,9 +213,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
 
-  # ============================================================
-  # PUBLIC — LEADS
-  # ============================================================
+  # public: leads
   /leads:
     post:
       tags: [Leads (public)]
@@ -246,9 +238,7 @@ paths:
                   data: { $ref: '#/components/schemas/Lead' }
         '400': { $ref: '#/components/responses/ValidationError' }
 
-  # ============================================================
-  # AUTHENTICATION
-  # ============================================================
+  # authentication
   /admin/auth/login:
     post:
       tags: [Authentication]
@@ -308,9 +298,7 @@ paths:
       responses:
         '204': { description: Sessão encerrada }
 
-  # ============================================================
-  # ADMIN — PRODUCTS
-  # ============================================================
+  # admin: products
   /admin/products:
     get:
       tags: [Admin — Products]
@@ -448,9 +436,7 @@ paths:
                     items: { $ref: '#/components/schemas/Category' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # ADMIN — VARIANTS
-  # ============================================================
+  # admin: variants
   /admin/products/{id}/variants:
     parameters:
       - $ref: '#/components/parameters/IdPath'
@@ -525,9 +511,7 @@ paths:
         '204': { description: Removida }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # ADMIN — IMAGES
-  # ============================================================
+  # admin: images
   /admin/products/{id}/images:
     parameters:
       - $ref: '#/components/parameters/IdPath'
@@ -594,9 +578,7 @@ paths:
         '204': { description: Removida }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # ADMIN — CATEGORIES
-  # ============================================================
+  # admin: categories
   /admin/categories:
     get:
       tags: [Admin — Categories]
@@ -662,9 +644,7 @@ paths:
         '204': { description: Removida }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # ADMIN — ORDERS
-  # ============================================================
+  # admin: orders
   /admin/orders:
     get:
       tags: [Admin — Orders]
@@ -748,9 +728,7 @@ paths:
                   data: { $ref: '#/components/schemas/OrderSummary' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # ADMIN — LEADS
-  # ============================================================
+  # admin: leads
   /admin/leads:
     get:
       tags: [Admin — Leads]
@@ -791,9 +769,7 @@ paths:
         '204': { description: Removido }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # ============================================================
-  # ADMIN — ADMINISTRATORS
-  # ============================================================
+  # admin: administrators
   /admin/admins:
     get:
       tags: [Admin — Administrators]
@@ -864,9 +840,7 @@ paths:
       responses:
         '204': { description: Removido }
 
-# ============================================================
-# COMPONENTS
-# ============================================================
+# components
 components:
 
   securitySchemes:
@@ -906,7 +880,7 @@ components:
 
   schemas:
 
-    # ---------- Generics ----------
+    # generics
     Error:
       type: object
       properties:
@@ -940,7 +914,7 @@ components:
         total: { type: integer, example: 137 }
         total_pages: { type: integer, example: 7 }
 
-    # ---------- Category ----------
+    # category
     Category:
       type: object
       properties:
@@ -955,7 +929,7 @@ components:
         name: { type: string, maxLength: 100 }
         description: { type: string, nullable: true }
 
-    # ---------- Product ----------
+    # product
     ProductSummary:
       type: object
       properties:
@@ -1036,7 +1010,7 @@ components:
           type: array
           items: { type: integer }
 
-    # ---------- Variant ----------
+    # variant
     Variant:
       type: object
       properties:
@@ -1085,7 +1059,7 @@ components:
           format: float
           nullable: true
 
-    # ---------- Image ----------
+    # image
     Image:
       type: object
       properties:
@@ -1107,7 +1081,7 @@ components:
         alt_text: { type: string, nullable: true }
         position: { type: integer, minimum: 0, default: 0 }
 
-    # ---------- Lead ----------
+    # lead
     Lead:
       type: object
       properties:
@@ -1131,7 +1105,7 @@ components:
           default: true
           description: Padrão `true` — o cadastro é explicitamente opt-in.
 
-    # ---------- Order ----------
+    # order
     OrderItemCreate:
       type: object
       required: [variant_id, quantity]
@@ -1215,7 +1189,7 @@ components:
               type: array
               items: { $ref: '#/components/schemas/OrderItem' }
 
-    # ---------- Admin ----------
+    # admin
     Admin:
       type: object
       properties:
