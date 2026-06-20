@@ -25,7 +25,18 @@ import { leadsRoutes } from "@/http/controllers/leads/routes";
 import { adminLeadsRoutes } from "@/http/controllers/admin-leads/routes";
 import { adminAdminsRoutes } from "@/http/controllers/admin-admins/routes";
 
-export const app = fastify().withTypeProvider<ZodTypeProvider>();
+// Structured logging via Fastify's built-in pino. Silent under tests; JSON logs
+// (with a request id per request) in dev/prod. The Authorization header is
+// redacted so Bearer tokens never reach the logs.
+const logger =
+  env.NODE_ENV === "test"
+    ? false
+    : {
+        level: env.NODE_ENV === "production" ? "info" : "debug",
+        redact: ["req.headers.authorization"],
+      };
+
+export const app = fastify({ logger }).withTypeProvider<ZodTypeProvider>();
 
 // Zod drives request validation and response serialization.
 app.setValidatorCompiler(validatorCompiler);

@@ -4,11 +4,10 @@ import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
 } from "fastify-type-provider-zod";
-import { env } from "@/env";
 
 type FastifyErrorHandler = Parameters<FastifyInstance["setErrorHandler"]>[0];
 
-export const errorHandler: FastifyErrorHandler = (error, _request, reply) => {
+export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
   if (hasZodFastifySchemaValidationErrors(error)) {
     return reply.status(400).send({
       error: {
@@ -44,11 +43,8 @@ export const errorHandler: FastifyErrorHandler = (error, _request, reply) => {
     });
   }
 
-  if (env.NODE_ENV !== "production") {
-    console.error(error);
-  } else {
-    // TODO: report to an external tool (Datadog/NewRelic/Sentry).
-  }
+  // Unexpected error: log it (the logger handles env/level) and hide details.
+  request.log.error({ err: error }, "internal server error");
 
   return reply.status(500).send({
     error: {
