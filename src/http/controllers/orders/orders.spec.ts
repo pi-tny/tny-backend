@@ -81,6 +81,24 @@ describe("Orders e2e", () => {
     expect(response.statusCode).toBe(404);
   });
 
+  it("should reject an order repeating the same variant_id", async () => {
+    const variant = await createVariant({ variant_price: 50 });
+
+    const response = await request(app.server)
+      .post("/orders")
+      .send({
+        name: "Maria",
+        phone: "x",
+        items: [
+          { variant_id: variant.id, quantity: 1 },
+          { variant_id: variant.id, quantity: 2 },
+        ],
+      });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
   it("should require auth to list orders", async () => {
     const response = await request(app.server).get("/admin/orders");
 

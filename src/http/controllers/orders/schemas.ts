@@ -25,7 +25,12 @@ export const orderCreateSchema = z.object({
         quantity: z.number().int().min(1),
       }),
     )
-    .min(1),
+    .min(1)
+    .refine(
+      (items) =>
+        new Set(items.map((item) => item.variant_id)).size === items.length,
+      { message: "items must not repeat the same variant_id" },
+    ),
 });
 
 export const orderCreatedResponseSchema = z.object({
