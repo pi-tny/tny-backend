@@ -1,5 +1,6 @@
 import { Prisma } from "../../../generated/prisma";
 import { prisma } from "@/lib/prisma";
+import { insensitiveContains } from "@/utils/prisma-search";
 import type {
   CreateLeadData,
   LeadsRepository,
@@ -29,8 +30,8 @@ export class PrismaLeadsRepository implements LeadsRepository {
     const where: Prisma.LeadWhereInput = filters.q
       ? {
           OR: [
-            { name: { contains: filters.q } },
-            { email: { contains: filters.q } },
+            { name: insensitiveContains(filters.q) },
+            { email: insensitiveContains(filters.q) },
           ],
         }
       : {};

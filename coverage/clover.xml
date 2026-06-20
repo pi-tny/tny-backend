@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1781873673055" clover="3.2.0">
-  <project timestamp="1781873673055" name="All files">
-    <metrics statements="210" coveredstatements="210" conditionals="86" coveredconditionals="84" methods="102" coveredmethods="102" elements="398" coveredelements="396" complexity="0" loc="210" ncloc="210" packages="10" files="45" classes="45"/>
+<coverage generated="1781968479196" clover="3.2.0">
+  <project timestamp="1781968479197" name="All files">
+    <metrics statements="211" coveredstatements="211" conditionals="90" coveredconditionals="88" methods="102" coveredmethods="102" elements="403" coveredelements="401" complexity="0" loc="211" ncloc="211" packages="10" files="45" classes="45"/>
     <package name="admins">
       <metrics statements="24" coveredstatements="24" conditionals="14" coveredconditionals="13" methods="8" coveredmethods="8"/>
       <file name="create-admin.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/admins/create-admin.ts">
@@ -166,7 +166,7 @@
       <file name="make-order-use-cases.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/factories/make-order-use-cases.ts">
         <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="4"/>
         <line num="9" count="4" type="stmt"/>
-        <line num="13" count="2" type="stmt"/>
+        <line num="13" count="3" type="stmt"/>
         <line num="17" count="1" type="stmt"/>
         <line num="21" count="1" type="stmt"/>
       </file>
@@ -237,7 +237,7 @@
       </file>
     </package>
     <package name="orders">
-      <metrics statements="25" coveredstatements="25" conditionals="6" coveredconditionals="6" methods="9" coveredmethods="9"/>
+      <metrics statements="26" coveredstatements="26" conditionals="10" coveredconditionals="10" methods="9" coveredmethods="9"/>
       <file name="create-order.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/orders/create-order.ts">
         <metrics statements="12" coveredstatements="12" conditionals="2" coveredconditionals="2" methods="3" coveredmethods="3"/>
         <line num="29" count="9" type="stmt"/>
@@ -262,10 +262,11 @@
         <line num="26" count="2" type="stmt"/>
       </file>
       <file name="list-orders.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/orders/list-orders.ts">
-        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-        <line num="15" count="4" type="stmt"/>
-        <line num="20" count="4" type="stmt"/>
-        <line num="21" count="4" type="stmt"/>
+        <metrics statements="4" coveredstatements="4" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+        <line num="19" count="7" type="stmt"/>
+        <line num="30" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="34" count="7" type="stmt"/>
+        <line num="42" count="7" type="stmt"/>
       </file>
       <file name="update-order-status.ts" path="/home/kaik/Documentos/www/tny/tny-backend/src/use-cases/orders/update-order-status.ts">
         <metrics statements="5" coveredstatements="5" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>

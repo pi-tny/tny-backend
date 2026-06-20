@@ -1,6 +1,7 @@
 import { Prisma } from "../../../generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { resolveCoverImage, resolveFinalPrice } from "@/utils/product-view";
+import { insensitiveContains } from "@/utils/prisma-search";
 import type {
   CreateProductData,
   ListProductsFilters,
@@ -75,7 +76,7 @@ export class PrismaProductsRepository implements ProductsRepository {
     if (filters.categoryId !== undefined) {
       where.categories = { some: { category_id: filters.categoryId } };
     }
-    if (filters.q) where.name = { contains: filters.q };
+    if (filters.q) where.name = insensitiveContains(filters.q);
 
     const [rows, total] = await Promise.all([
       prisma.product.findMany({
