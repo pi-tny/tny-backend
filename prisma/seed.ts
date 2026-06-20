@@ -62,6 +62,7 @@ async function main() {
     description: string;
     price: number;
     promotional_price?: number;
+    active?: boolean;
     categories: (typeof categoryNames)[number][];
     variants: {
       variant_sku: string;
@@ -212,16 +213,43 @@ async function main() {
       ],
       images: [{ seed: "ace-bon-1", position: 0 }],
     },
+    {
+      // active product that is fully out of stock (demos the in_stock filter)
+      sku: "ACE-MEI",
+      name: "Meia Cano Alto",
+      description: "Meia esportiva, par.",
+      price: 24.9,
+      categories: ["Acessórios"],
+      variants: [
+        { variant_sku: "ACE-MEI-PRE-U", color: "Preto", size: "Único", quantity: 0 },
+      ],
+      images: [{ seed: "ace-mei-1", position: 0 }],
+    },
+    {
+      // inactive product (soft-deleted): hidden from the public, visible to admin
+      sku: "CAM-DESC",
+      name: "Camiseta Descontinuada",
+      description: "Item fora de linha.",
+      price: 39.9,
+      active: false,
+      categories: ["Camisetas"],
+      variants: [
+        { variant_sku: "CAM-DESC-PRE-M", color: "Preto", size: "M", quantity: 3 },
+      ],
+      images: [{ seed: "cam-desc-1", position: 0 }],
+    },
   ];
 
+  const createdProducts = [];
   for (const product of products) {
-    await prisma.product.create({
+    const created = await prisma.product.create({
       data: {
         sku: product.sku,
         name: product.name,
         description: product.description,
         price: product.price,
         promotional_price: product.promotional_price ?? null,
+        active: product.active ?? true,
         variants: {
           create: product.variants.map((variant) => ({
             variant_sku: variant.variant_sku,
@@ -240,15 +268,89 @@ async function main() {
           })),
         },
       },
+      include: { variants: true },
     });
+    createdProducts.push(created);
   }
+
+  // --- Second admin (admin management demo) ---
+  await prisma.admin.create({
+    data: {
+      name: "Operador TNY",
+      email: "operador@tny.dev",
+      password_hash: await hash("operador123", 6),
+    },
+  });
+
+  // --- Leads ---
+  const leads = [
+    { name: "Maria Souza", email: "maria@example.com", phone: "+5585999990001" },
+    {
+      name: "João Lima",
+      email: "joao@example.com",
+      phone: "+5585999990002",
+      marketing_consent: false,
+    },
+    { name: "Ana Paula", email: "ana@example.com", phone: "+5585999990003" },
+  ];
+  for (const lead of leads) {
+    await prisma.lead.create({ data: lead });
+  }
+
+  // --- Orders (item details frozen at purchase time) ---
+  const finalPrice = (
+    product: { price: number; promotional_price: number | null },
+    variant: { price: number | null },
+  ) => product.promotional_price ?? variant.price ?? product.price;
+
+  const orderItem = (sku: string, variantIndex: number, quantity: number) => {
+    const product = createdProducts.find((item) => item.sku === sku);
+    if (!product) throw new Error(`seed product ${sku} not found`);
+    const variant = product.variants[variantIndex];
+    return {
+      variant_id: variant.id,
+      product_name: product.name,
+      color: variant.color,
+      size: variant.size,
+      quantity,
+      unit_price: finalPrice(product, variant),
+    };
+  };
+  const sum = (items: { unit_price: number; quantity: number }[]) =>
+    items.reduce((acc, item) => acc + item.unit_price * item.quantity, 0);
+
+  const order1Items = [orderItem("CAM-BAS", 0, 2), orderItem("CAL-JEA", 0, 1)];
+  const order2Items = [orderItem("ACE-BON", 0, 3)];
+
+  await prisma.order.create({
+    data: {
+      name: "Maria Souza",
+      phone: "+5585999990001",
+      email: "maria@example.com",
+      payment_method: "pix",
+      status: "new",
+      total: sum(order1Items),
+      items: { create: order1Items },
+    },
+  });
+  await prisma.order.create({
+    data: {
+      name: "João Lima",
+      phone: "+5585999990002",
+      payment_method: "to_be_defined",
+      status: "fulfilled",
+      total: sum(order2Items),
+      items: { create: order2Items },
+    },
+  });
 
   console.log("🌱 Seed concluído:");
   console.log(`   Admin: ${admin.email} / senha: ${adminPassword}`);
+  console.log("   Admin 2: operador@tny.dev / senha: operador123");
   console.log(
     `   ${categoryNames.length} categorias, ${products.length} produtos`,
   );
-  console.log("   0 pedidos, 0 leads");
+  console.log(`   ${leads.length} leads, 2 pedidos`);
 }
 
 main()
