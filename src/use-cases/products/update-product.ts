@@ -3,6 +3,7 @@ import type {
   ProductsRepository,
 } from "@/repositories/products-repository";
 import { ProductSkuAlreadyExistsError } from "@/use-cases/errors/product-sku-already-exists-error";
+import { InvalidPromotionalPriceError } from "@/use-cases/errors/invalid-promotional-price-error";
 import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
 
 interface UpdateProductUseCaseRequest {
@@ -32,6 +33,25 @@ export class UpdateProductUseCase {
       if (existing && existing.id !== id) {
         throw new ProductSkuAlreadyExistsError();
       }
+    }
+
+    const current = await this.productsRepository.findDetail(id, true);
+    if (!current) {
+      throw new ResourceNotFoundError();
+    }
+
+    // Validate the rule against the values the product will end up with, since a
+    // partial update may touch only price or only promotional_price.
+    const resultingPrice = data.price ?? current.price;
+    const resultingPromotionalPrice =
+      data.promotional_price !== undefined
+        ? data.promotional_price
+        : current.promotional_price;
+    if (
+      resultingPromotionalPrice != null &&
+      resultingPromotionalPrice >= resultingPrice
+    ) {
+      throw new InvalidPromotionalPriceError();
     }
 
     const product = await this.productsRepository.update(id, data);

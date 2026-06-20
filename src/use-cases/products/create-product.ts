@@ -3,6 +3,7 @@ import type {
   ProductsRepository,
 } from "@/repositories/products-repository";
 import { ProductSkuAlreadyExistsError } from "@/use-cases/errors/product-sku-already-exists-error";
+import { InvalidPromotionalPriceError } from "@/use-cases/errors/invalid-promotional-price-error";
 
 interface CreateProductUseCaseRequest {
   sku: string;
@@ -28,6 +29,10 @@ export class CreateProductUseCase {
 
     if (existing) {
       throw new ProductSkuAlreadyExistsError();
+    }
+
+    if (data.promotional_price != null && data.promotional_price >= data.price) {
+      throw new InvalidPromotionalPriceError();
     }
 
     const product = await this.productsRepository.create(data);

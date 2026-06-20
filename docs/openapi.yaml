@@ -356,6 +356,7 @@ paths:
         '400': { $ref: '#/components/responses/ValidationError' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
 
   /admin/products/{id}:
     parameters:
@@ -396,6 +397,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
     delete:
       tags: [Admin — Products]
       summary: Remover produto (soft delete via `active=false`)
@@ -874,6 +876,11 @@ components:
           schema: { $ref: '#/components/schemas/ValidationError' }
     Conflict:
       description: Conflito de unicidade (sku/email já existente)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UnprocessableEntity:
+      description: "Regra de negócio violada (ex. promotional_price >= price)"
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }

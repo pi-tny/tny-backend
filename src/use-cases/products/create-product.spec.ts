@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryProductsRepository } from "@/repositories/in-memory/in-memory-products-repository";
 import { ProductSkuAlreadyExistsError } from "@/use-cases/errors/product-sku-already-exists-error";
+import { InvalidPromotionalPriceError } from "@/use-cases/errors/invalid-promotional-price-error";
 import { CreateProductUseCase } from "./create-product";
 
 let productsRepository: InMemoryProductsRepository;
@@ -41,6 +42,18 @@ describe("Create Product Use Case", () => {
     });
 
     expect(product.categories).toHaveLength(2);
+  });
+
+  it("should reject a promotional_price that is not below the base price", async () => {
+    await expect(() =>
+      sut.execute({
+        sku: "SKU-P",
+        name: "Promo",
+        description: "x",
+        price: 100,
+        promotional_price: 100,
+      }),
+    ).rejects.toBeInstanceOf(InvalidPromotionalPriceError);
   });
 
   it("should not create two products with the same sku", async () => {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryProductsRepository } from "@/repositories/in-memory/in-memory-products-repository";
 import { ProductSkuAlreadyExistsError } from "@/use-cases/errors/product-sku-already-exists-error";
+import { InvalidPromotionalPriceError } from "@/use-cases/errors/invalid-promotional-price-error";
 import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
 import { UpdateProductUseCase } from "./update-product";
 
@@ -56,5 +57,26 @@ describe("Update Product Use Case", () => {
     await expect(() =>
       sut.execute({ id: second.id, sku: "SKU-1" }),
     ).rejects.toBeInstanceOf(ProductSkuAlreadyExistsError);
+  });
+
+  it("should reject a promotional_price not below the (existing) base price", async () => {
+    const created = await seed("SKU-1"); // price 10
+
+    await expect(() =>
+      sut.execute({ id: created.id, promotional_price: 10 }),
+    ).rejects.toBeInstanceOf(InvalidPromotionalPriceError);
+  });
+
+  it("should validate against the incoming price when both change", async () => {
+    const created = await seed("SKU-1"); // price 10
+
+    const { product } = await sut.execute({
+      id: created.id,
+      price: 200,
+      promotional_price: 150,
+    });
+
+    expect(product.price).toBe(200);
+    expect(product.promotional_price).toBe(150);
   });
 });

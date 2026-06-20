@@ -62,6 +62,24 @@ describe("Admin Products e2e", () => {
     expect(response.body.error.code).toBe("PRODUCT_SKU_ALREADY_EXISTS");
   });
 
+  it("should reject a promotional_price not below the base price (422)", async () => {
+    const { token } = await createAndAuthenticate(app);
+
+    const response = await request(app.server)
+      .post("/admin/products")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        sku: "SKU-P",
+        name: "Promo",
+        description: "x",
+        price: 100,
+        promotional_price: 120,
+      });
+
+    expect(response.statusCode).toBe(422);
+    expect(response.body.error.code).toBe("INVALID_PROMOTIONAL_PRICE");
+  });
+
   it("should list products including inactive ones", async () => {
     const { token } = await createAndAuthenticate(app);
     await prisma.product.create({

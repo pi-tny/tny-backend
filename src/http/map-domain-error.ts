@@ -4,6 +4,7 @@ import { InvalidCredentialsError } from "@/use-cases/errors/invalid-credentials-
 import { ProductSkuAlreadyExistsError } from "@/use-cases/errors/product-sku-already-exists-error";
 import { VariantSkuAlreadyExistsError } from "@/use-cases/errors/variant-sku-already-exists-error";
 import { AdminAlreadyExistsError } from "@/use-cases/errors/admin-already-exists-error";
+import { InvalidPromotionalPriceError } from "@/use-cases/errors/invalid-promotional-price-error";
 
 /**
  * Maps known domain errors to their HTTP response (openapi `Error` shape).
@@ -38,6 +39,12 @@ export function mapDomainError(error: unknown, reply: FastifyReply) {
   if (error instanceof AdminAlreadyExistsError) {
     return reply.status(409).send({
       error: { code: "ADMIN_ALREADY_EXISTS", message: error.message },
+    });
+  }
+
+  if (error instanceof InvalidPromotionalPriceError) {
+    return reply.status(422).send({
+      error: { code: "INVALID_PROMOTIONAL_PRICE", message: error.message },
     });
   }
 
