@@ -6,10 +6,29 @@ import type {
   CreateProductData,
   ListProductsFilters,
   ProductDetail,
+  ProductSort,
   ProductsRepository,
   ProductSummary,
   UpdateProductData,
 } from "@/repositories/products-repository";
+
+function orderByFor(
+  sort: ProductSort,
+): Prisma.ProductOrderByWithRelationInput[] {
+  switch (sort) {
+    case "oldest":
+      return [{ id: "asc" }];
+    case "price_asc":
+      return [{ price: "asc" }, { id: "asc" }];
+    case "price_desc":
+      return [{ price: "desc" }, { id: "asc" }];
+    case "name":
+      return [{ name: "asc" }, { id: "asc" }];
+    case "newest":
+    default:
+      return [{ id: "desc" }];
+  }
+}
 
 const summaryInclude = {
   categories: { include: { category: true } },
@@ -77,12 +96,17 @@ export class PrismaProductsRepository implements ProductsRepository {
       where.categories = { some: { category_id: filters.categoryId } };
     }
     if (filters.q) where.name = insensitiveContains(filters.q);
+    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+      where.price = { gte: filters.minPrice, lte: filters.maxPrice };
+    }
+    if (filters.onSale) where.promotional_price = { not: null };
+    if (filters.inStock) where.variants = { some: { quantity: { gt: 0 } } };
 
     const [rows, total] = await Promise.all([
       prisma.product.findMany({
         where,
         include: summaryInclude,
-        orderBy: { id: "asc" },
+        orderBy: orderByFor(filters.sort ?? "newest"),
         skip: (filters.page - 1) * filters.limit,
         take: filters.limit,
       }),

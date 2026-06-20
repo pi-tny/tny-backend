@@ -36,10 +36,23 @@ export interface ProductListResult {
   limit: number;
 }
 
+export type ProductSort =
+  | "newest"
+  | "oldest"
+  | "price_asc"
+  | "price_desc"
+  | "name";
+
 export interface ListProductsFilters {
   categoryId?: number;
   q?: string;
   active?: boolean;
+  // price range applies to the product base price
+  minPrice?: number;
+  maxPrice?: number;
+  onSale?: boolean; // only products with a promotional_price
+  inStock?: boolean; // only products with a variant in stock (quantity > 0)
+  sort?: ProductSort; // defaults to "newest"
   page: number;
   limit: number;
 }

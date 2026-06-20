@@ -3,10 +3,27 @@ import type {
   CreateProductData,
   ListProductsFilters,
   ProductDetail,
+  ProductSort,
   ProductSummary,
   ProductsRepository,
   UpdateProductData,
 } from "@/repositories/products-repository";
+
+function comparator(sort: ProductSort): (a: Product, b: Product) => number {
+  switch (sort) {
+    case "oldest":
+      return (a, b) => a.id - b.id;
+    case "price_asc":
+      return (a, b) => a.price - b.price || a.id - b.id;
+    case "price_desc":
+      return (a, b) => b.price - a.price || a.id - b.id;
+    case "name":
+      return (a, b) => a.name.localeCompare(b.name) || a.id - b.id;
+    case "newest":
+    default:
+      return (a, b) => b.id - a.id;
+  }
+}
 
 // Faithful-enough fake for unit tests: products, category links and a seeded
 // category catalog. Variants/images are out of scope here (covered via e2e), so
@@ -15,6 +32,8 @@ export class InMemoryProductsRepository implements ProductsRepository {
   public items: Product[] = [];
   public categories: Category[] = [];
   public links: { product_id: number; category_id: number }[] = [];
+  // seed variant stock here to exercise the in_stock filter
+  public variants: { product_id: number; quantity: number }[] = [];
   private nextId = 1;
 
   private categoriesOf(productId: number): Category[] {
@@ -77,8 +96,24 @@ export class InMemoryProductsRepository implements ProductsRepository {
         item.name.toLowerCase().includes(term),
       );
     }
+    if (filters.minPrice !== undefined) {
+      result = result.filter((item) => item.price >= filters.minPrice!);
+    }
+    if (filters.maxPrice !== undefined) {
+      result = result.filter((item) => item.price <= filters.maxPrice!);
+    }
+    if (filters.onSale) {
+      result = result.filter((item) => item.promotional_price !== null);
+    }
+    if (filters.inStock) {
+      result = result.filter((item) =>
+        this.variants.some(
+          (variant) => variant.product_id === item.id && variant.quantity > 0,
+        ),
+      );
+    }
 
-    result.sort((a, b) => a.id - b.id);
+    result.sort(comparator(filters.sort ?? "newest"));
     const total = result.length;
     const start = (filters.page - 1) * filters.limit;
     const items = result
