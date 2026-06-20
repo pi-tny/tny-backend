@@ -14,7 +14,9 @@ Prisma (config in `prisma.config.ts`, schema in `prisma/schema.prisma`; SQLite d
 - `npm run db:generate` — regenerate the client. **Note:** client output is `generated/prisma` (custom `output` at the repo root), not the default `node_modules` location.
 - `npm run db:seed` — seed (admin, categories, products). `npx prisma studio` inspects the DB.
 
-Migrations are split per provider under `prisma/migrations/<sqlite|postgres>/`, selected by `DATABASE_PROVIDER`.
+Migrations are split per provider under `prisma/migrations/<sqlite|postgres>/`, selected by `DATABASE_PROVIDER`. **The Prisma client embeds the active provider**, so it must be regenerated when switching DBs — `scripts/prisma.mjs` rewrites the schema's `datasource` provider (`sqlite`↔`postgresql`) to match `DATABASE_PROVIDER` before running any prisma command (so `npm run db:*` stay portable). The committed schema stays `sqlite` (dev/tests). The seed (`prisma/seed.ts`) picks its adapter the same way and runs on both DBs.
+
+Docker (Postgres): `docker compose up` builds the app image and starts it alongside a `postgres:16` service (`DATABASE_PROVIDER=postgres`); the container generates the postgres client at build, applies the postgres migrations on startup, and runs via `tsx`. Host port `5433` maps to the DB to avoid clashing with a local postgres on 5432.
 
 Vitest + Supertest are installed and configured (`vitest.config.mts`, `test/global-setup.ts`). Unit specs use in-memory repositories; e2e specs use Supertest against the imported `app` with an isolated test DB. Coverage thresholds are enforced at 90% over `src/use-cases/**`.
 

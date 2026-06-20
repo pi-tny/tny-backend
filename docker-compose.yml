@@ -1,17 +1,38 @@
-# sqlite-based stack: single api service, db file persisted in a named volume
+# Postgres-based stack: api + postgres. The api applies the postgres migrations
+# on startup (scripts/prisma.mjs syncs the schema provider to DATABASE_PROVIDER).
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tny
+      POSTGRES_PASSWORD: tny
+      POSTGRES_DB: tny
+    ports:
+      # host 5433 to avoid clashing with a local postgres on 5432
+      - "5433:5432"
+    volumes:
+      - tny_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tny -d tny"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build: .
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: file:/data/dev.db
+      DATABASE_PROVIDER: postgres
+      DATABASE_URL: postgresql://tny:tny@db:5432/tny
       JWT_SECRET: ${JWT_SECRET:-change-me}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
-    volumes:
-      - tny_data:/data
+      WHATSAPP_NUMBER: ${WHATSAPP_NUMBER:-}
 
 volumes:
-  tny_data:
+  tny_pgdata:

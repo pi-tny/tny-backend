@@ -1,11 +1,16 @@
 import "dotenv/config";
 import { hash } from "bcryptjs";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma";
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
-});
+// Pick the driver adapter the same way src/lib/prisma does, so the seed runs on
+// both SQLite (dev) and Postgres (prod/docker).
+const url = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
+const adapter =
+  process.env.DATABASE_PROVIDER === "postgres"
+    ? new PrismaPg({ connectionString: url })
+    : new PrismaBetterSqlite3({ url });
 const prisma = new PrismaClient({ adapter });
 
 function image(seed: string, position: number) {
