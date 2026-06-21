@@ -7,8 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsup",
     "start": "node dist/server.js",
-    "lint": "eslint src api",
-    "lint:fix": "eslint src api --fix",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -37,7 +37,6 @@
     "prisma": "^7.8.0",
     "supertest": "^7.2.2",
     "tsup": "^8.5.1",
-    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1",
     "vite-tsconfig-paths": "^6.1.1",
@@ -59,6 +58,7 @@
     "fastify": "^5.8.5",
     "fastify-type-provider-zod": "^6.1.0",
     "pg": "^8.21.0",
+    "tsx": "^4.22.4",
     "zod": "^4.4.3"
   }
 }

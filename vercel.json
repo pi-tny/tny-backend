@@ -2,8 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "DATABASE_PROVIDER=postgres node scripts/prisma.mjs generate",
   "functions": {
-    "api/index.ts": {
-      "includeFiles": "docs/openapi.yaml"
+    "api/index.js": {
+      "includeFiles": "{src/**,generated/**,docs/**,tsconfig.json}"
     }
   },
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
