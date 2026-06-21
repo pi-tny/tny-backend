@@ -15,7 +15,7 @@ export default defineConfig([
     external,
   },
   {
-    entry: { app: "src/app" },
+    entry: { app: "src/app.ts" },
     outDir: "dist",
     format: ["cjs"],
     target: "node22",
