@@ -1,12 +1,10 @@
-// Vercel serverless entry. Kept as plain JS (not .ts) so we can register the
-// tsx runtime hook BEFORE the TypeScript app is loaded. Vercel's bundler
-// transpiles .ts files per-file and does NOT resolve the "@/*" path aliases,
-// so instead we run the real source through tsx, which reads tsconfig.json and
-// resolves the aliases at runtime — same approach as the Docker image. The
-// source tree (src, generated, docs) is shipped via includeFiles in vercel.json.
-require("tsx/cjs");
-
-const { app } = require("../src/app");
+// Vercel serverless entry. Vercel's @vercel/node transpiles .ts files per-file
+// and does NOT resolve the "@/*" path aliases, so we don't let it touch the
+// source. Instead `npm run build:vercel` (see vercel.json) pre-bundles the
+// Fastify app into dist/app.cjs with esbuild — aliases resolved at build time,
+// node_modules kept external (so packages like @fastify/swagger-ui still find
+// their own assets via __dirname). Here we just hand requests to that app.
+const { app } = require("../dist/app.cjs");
 
 module.exports = async (req, res) => {
   await app.ready();

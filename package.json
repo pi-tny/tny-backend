@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsup",
+    "build:vercel": "DATABASE_PROVIDER=postgres node scripts/prisma.mjs generate && esbuild src/app.ts --bundle --platform=node --format=cjs --target=node22 --tsconfig=tsconfig.json --packages=external --outfile=dist/app.cjs",
     "start": "node dist/server.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
@@ -31,12 +32,14 @@
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.9",
+    "esbuild": "^0.27.7",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.4",
     "prisma": "^7.8.0",
     "supertest": "^7.2.2",
     "tsup": "^8.5.1",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1",
     "vite-tsconfig-paths": "^6.1.1",
@@ -58,7 +61,6 @@
     "fastify": "^5.8.5",
     "fastify-type-provider-zod": "^6.1.0",
     "pg": "^8.21.0",
-    "tsx": "^4.22.4",
     "zod": "^4.4.3"
   }
 }
