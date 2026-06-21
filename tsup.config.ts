@@ -1,26 +1,16 @@
 import { defineConfig } from "tsup";
 
-const external = [
-  "better-sqlite3",
-  "@prisma/adapter-better-sqlite3",
-];
-
-export default defineConfig([
-  {
-    entry: ["src/server.ts"],
-    outDir: "dist",
-    format: ["cjs"],
-    target: "node22",
-    clean: true,
-    external,
+export default defineConfig({
+  entry: {
+    server: "src/server.ts",
+    app: "src/app.ts",
   },
-  {
-    entry: { app: "src/app.ts" },
-    outDir: "dist",
-    format: ["cjs"],
-    target: "node22",
-    clean: false,
-    external,
-    outExtension: () => ({ js: ".cjs" }),
+  outDir: "dist",
+  format: ["cjs"],
+  target: "node22",
+  clean: true,
+  external: ["better-sqlite3", "@prisma/adapter-better-sqlite3"],
+  outExtension({ format }) {
+    return { js: ".js" }; // ambos saem como .js
   },
-]);
+});
