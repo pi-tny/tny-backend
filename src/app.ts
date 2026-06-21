@@ -1,4 +1,5 @@
 import path from "node:path";
+import { existsSync } from "node:fs";
 import fastify from "fastify";
 import fastifyJwt from "@fastify/jwt";
 import cors from "@fastify/cors";
@@ -52,16 +53,21 @@ app.register(cors, {
 
 // Swagger: docs/openapi.yaml is the source of truth, served statically.
 // The spec is NOT generated from the routes. UI at /docs, spec JSON at /docs/json.
-app.register(fastifySwagger, {
-  mode: "static",
-  specification: {
-    path: path.resolve(__dirname, "../docs/openapi.yaml"),
-    baseDir: path.resolve(__dirname, "../docs"),
-  },
-});
-app.register(fastifySwaggerUi, {
-  routePrefix: "/docs",
-});
+// Resolved from the working dir so it works under tsx, the bundled build and
+// serverless (Vercel, where __dirname differs); skipped if the file is absent.
+const openapiPath = path.resolve(process.cwd(), "docs/openapi.yaml");
+if (existsSync(openapiPath)) {
+  app.register(fastifySwagger, {
+    mode: "static",
+    specification: {
+      path: openapiPath,
+      baseDir: path.resolve(process.cwd(), "docs"),
+    },
+  });
+  app.register(fastifySwaggerUi, {
+    routePrefix: "/docs",
+  });
+}
 
 // Auth is Bearer-only (Authorization header); no refresh cookie.
 app.register(fastifyJwt, {
