@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsup",
-    "build:vercel": "DATABASE_PROVIDER=postgres node scripts/prisma.mjs generate && esbuild src/app.ts --bundle --platform=node --format=cjs --target=node22 --tsconfig=tsconfig.json --packages=external --outfile=dist/app.cjs",
+    "build:vercel": "DATABASE_PROVIDER=postgres node scripts/prisma.mjs generate && tsup",
     "start": "node dist/server.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
