@@ -9,6 +9,10 @@
     "rootDir": ".",
     "outDir": "./dist",
 
+    // baseUrl is needed so bundlers (Vercel's esbuild) can resolve the "@/*"
+    // path alias at build time; ignoreDeprecations silences the TS 6 warning.
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"]
     },
