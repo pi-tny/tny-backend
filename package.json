@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsup",
-    "build:vercel": "mkdir -p public && DATABASE_PROVIDER=postgres node scripts/prisma.mjs generate && tsup",
+    "build:vercel": "node scripts/prisma.mjs generate && tsup",
     "start": "node dist/server.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
