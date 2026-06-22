@@ -6,5 +6,6 @@
       "includeFiles": "docs/openapi.yaml"
     }
   },
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
+  "outputDirectory": "public"
 }
