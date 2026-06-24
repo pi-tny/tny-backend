@@ -21,6 +21,24 @@ function image(seed: string, position: number) {
   };
 }
 
+// Small deterministic PRNG (mulberry32) so reruns produce stable, collision-free data.
+function makeRng(seed: number) {
+  let state = seed >>> 0;
+  return () => {
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rng = makeRng(20260623);
+const pick = <T>(items: readonly T[]) =>
+  items[Math.floor(rng() * items.length)];
+const int = (min: number, max: number) =>
+  min + Math.floor(rng() * (max - min + 1));
+const round2 = (value: number) => Math.round(value * 100) / 100;
+
 async function main() {
   // Idempotent: wipe everything first (FK-safe order).
   await prisma.orderItem.deleteMany();
@@ -50,6 +68,21 @@ async function main() {
     "Bermudas",
     "Acessórios",
     "Lançamentos",
+    "Moletons",
+    "Jaquetas",
+    "Camisas",
+    "Shorts",
+    "Saias",
+    "Vestidos",
+    "Blusas",
+    "Casacos",
+    "Calçados",
+    "Bonés",
+    "Meias",
+    "Cuecas",
+    "Promoções",
+    "Infantil",
+    "Esportivo",
   ] as const;
 
   const categories: Record<string, number> = {};
@@ -245,6 +278,105 @@ async function main() {
     },
   ];
 
+  // --- Bulk generated products (100+) ---
+  // Build many products procedurally on top of the curated demo ones above, so
+  // the catalog is large enough for realistic pagination/filtering.
+  const productTypes = [
+    { label: "Camiseta", prefix: "CAM", category: "Camisetas" },
+    { label: "Calça", prefix: "CAL", category: "Calças" },
+    { label: "Bermuda", prefix: "BER", category: "Bermudas" },
+    { label: "Moletom", prefix: "MOL", category: "Moletons" },
+    { label: "Jaqueta", prefix: "JAQ", category: "Jaquetas" },
+    { label: "Camisa", prefix: "CMS", category: "Camisas" },
+    { label: "Short", prefix: "SHO", category: "Shorts" },
+    { label: "Saia", prefix: "SAI", category: "Saias" },
+    { label: "Vestido", prefix: "VES", category: "Vestidos" },
+    { label: "Blusa", prefix: "BLU", category: "Blusas" },
+    { label: "Casaco", prefix: "CAS", category: "Casacos" },
+    { label: "Tênis", prefix: "TEN", category: "Calçados" },
+    { label: "Boné", prefix: "BON", category: "Bonés" },
+    { label: "Meia", prefix: "MEI", category: "Meias" },
+  ] as const;
+  const adjectives = [
+    "Básica",
+    "Premium",
+    "Slim",
+    "Oversized",
+    "Comfort",
+    "Vintage",
+    "Urban",
+    "Sport",
+    "Classic",
+    "Eco",
+    "Tech",
+    "Street",
+  ];
+  const colors = [
+    { name: "Preto", code: "PRE" },
+    { name: "Branco", code: "BRA" },
+    { name: "Azul", code: "AZU" },
+    { name: "Cinza", code: "CIN" },
+    { name: "Verde", code: "VER" },
+    { name: "Vermelho", code: "VME" },
+    { name: "Bege", code: "BEG" },
+    { name: "Marinho", code: "MAR" },
+    { name: "Vinho", code: "VIN" },
+    { name: "Rosa", code: "ROS" },
+  ];
+  const sizes = ["PP", "P", "M", "G", "GG", "XG"];
+
+  const GENERATED_COUNT = 120;
+  for (let i = 0; i < GENERATED_COUNT; i++) {
+    const type = productTypes[i % productTypes.length];
+    const adjective = adjectives[i % adjectives.length];
+    const seq = String(i + 1).padStart(3, "0");
+    const sku = `${type.prefix}-${seq}`;
+    const price = round2(int(2990, 29990) / 100);
+    const onSale = rng() < 0.35;
+
+    // Unique color/size combos for variants.
+    const variantCount = int(2, 5);
+    const usedCombos = new Set<string>();
+    const variants: ProductSeed["variants"] = [];
+    let attempts = 0;
+    while (variants.length < variantCount && attempts < 30) {
+      attempts++;
+      const color = pick(colors);
+      const size = pick(sizes);
+      const combo = `${color.code}-${size}`;
+      if (usedCombos.has(combo)) continue;
+      usedCombos.add(combo);
+      variants.push({
+        variant_sku: `${sku}-${combo}`,
+        color: color.name,
+        size,
+        quantity: int(0, 80),
+        // ~20% of variants carry their own price override.
+        price: rng() < 0.2 ? round2(price + int(500, 4000) / 100) : undefined,
+      });
+    }
+
+    const productCategories: (typeof categoryNames)[number][] = [type.category];
+    if (onSale) productCategories.push("Promoções");
+    if (i % 9 === 0) productCategories.push("Lançamentos");
+    if (i % 7 === 0) productCategories.push("Esportivo");
+
+    products.push({
+      sku,
+      name: `${type.label} ${adjective} ${seq}`,
+      description: `${type.label} ${adjective.toLowerCase()} da coleção TNY, modelo ${seq}.`,
+      price,
+      promotional_price: onSale ? round2(price * (0.6 + rng() * 0.25)) : undefined,
+      active: rng() < 0.95,
+      categories: productCategories,
+      images: Array.from({ length: int(1, 3) }, (_, position) => ({
+        seed: `${sku}-${position}`,
+        position,
+      })),
+      variants,
+    });
+  }
+
   const createdProducts = [];
   for (const product of products) {
     const created = await prisma.product.create({
@@ -278,26 +410,52 @@ async function main() {
     createdProducts.push(created);
   }
 
-  // --- Second admin (admin management demo) ---
-  await prisma.admin.create({
-    data: {
-      name: "Operador TNY",
-      email: "operador@tny.dev",
-      password_hash: await hash("operador123", 6),
-    },
-  });
-
-  // --- Leads ---
-  const leads = [
-    { name: "Maria Souza", email: "maria@example.com", phone: "+5585999990001" },
-    {
-      name: "João Lima",
-      email: "joao@example.com",
-      phone: "+5585999990002",
-      marketing_consent: false,
-    },
-    { name: "Ana Paula", email: "ana@example.com", phone: "+5585999990003" },
+  // --- Extra admins (admin management demo) — 5 total including the first ---
+  const extraAdmins = [
+    { name: "Operador TNY", email: "operador@tny.dev", password: "operador123" },
+    { name: "Gerente TNY", email: "gerente@tny.dev", password: "gerente123" },
+    { name: "Estoque TNY", email: "estoque@tny.dev", password: "estoque123" },
+    { name: "Suporte TNY", email: "suporte@tny.dev", password: "suporte123" },
   ];
+  for (const extra of extraAdmins) {
+    await prisma.admin.create({
+      data: {
+        name: extra.name,
+        email: extra.email,
+        password_hash: await hash(extra.password, 6),
+      },
+    });
+  }
+
+  // --- Leads (100+) ---
+  const firstNames = [
+    "Maria", "João", "Ana", "Pedro", "Lucas", "Júlia", "Carlos", "Beatriz",
+    "Rafael", "Fernanda", "Gustavo", "Camila", "Bruno", "Larissa", "Felipe",
+    "Patrícia", "Rodrigo", "Amanda", "Thiago", "Mariana",
+  ];
+  const lastNames = [
+    "Souza", "Lima", "Silva", "Oliveira", "Santos", "Pereira", "Costa",
+    "Almeida", "Ferreira", "Rodrigues", "Gomes", "Martins", "Araújo", "Ribeiro",
+  ];
+  const leads: {
+    name: string;
+    email: string;
+    phone: string;
+    marketing_consent?: boolean;
+  }[] = [];
+  const usedEmails = new Set<string>();
+  for (let i = 0; leads.length < 120; i++) {
+    const name = `${pick(firstNames)} ${pick(lastNames)}`;
+    const email = `lead${String(i + 1).padStart(4, "0")}@example.com`;
+    if (usedEmails.has(email)) continue;
+    usedEmails.add(email);
+    leads.push({
+      name,
+      email,
+      phone: `+55859${String(90000000 + i).slice(-8)}`,
+      marketing_consent: rng() < 0.8,
+    });
+  }
   for (const lead of leads) {
     await prisma.lead.create({ data: lead });
   }
@@ -324,6 +482,7 @@ async function main() {
   const sum = (items: { unit_price: number; quantity: number }[]) =>
     items.reduce((acc, item) => acc + item.unit_price * item.quantity, 0);
 
+  // Curated orders (reference the curated demo products).
   const order1Items = [orderItem("CAM-BAS", 0, 2), orderItem("CAL-JEA", 0, 1)];
   const order2Items = [orderItem("ACE-BON", 0, 3)];
 
@@ -349,13 +508,57 @@ async function main() {
     },
   });
 
+  // --- Bulk generated orders (100+) ---
+  const statuses = ["new", "processing", "fulfilled", "cancelled"];
+  const paymentMethods = ["pix", "credit_card", "boleto", "to_be_defined"];
+  const orderItemFromVariant = (
+    product: (typeof createdProducts)[number],
+    variant: (typeof createdProducts)[number]["variants"][number],
+    quantity: number,
+  ) => ({
+    variant_id: variant.id,
+    product_name: product.name,
+    color: variant.color,
+    size: variant.size,
+    quantity,
+    unit_price: finalPrice(product, variant),
+  });
+
+  const GENERATED_ORDERS = 120;
+  for (let i = 0; i < GENERATED_ORDERS; i++) {
+    const lead = leads[i % leads.length];
+    const itemCount = int(1, 4);
+    const items = [];
+    for (let j = 0; j < itemCount; j++) {
+      const product = pick(createdProducts);
+      if (product.variants.length === 0) continue;
+      const variant = pick(product.variants);
+      items.push(orderItemFromVariant(product, variant, int(1, 3)));
+    }
+    if (items.length === 0) continue;
+    await prisma.order.create({
+      data: {
+        name: lead.name,
+        phone: lead.phone,
+        email: rng() < 0.7 ? lead.email : null,
+        payment_method: pick(paymentMethods),
+        status: pick(statuses),
+        total: sum(items),
+        items: { create: items },
+      },
+    });
+  }
+
+  const totalVariants = products.reduce((acc, p) => acc + p.variants.length, 0);
+  const totalImages = products.reduce((acc, p) => acc + p.images.length, 0);
+  const totalAdmins = 1 + extraAdmins.length;
+  const totalOrders = 2 + GENERATED_ORDERS;
   console.log("🌱 Seed concluído:");
   console.log(`   Admin: ${admin.email} / senha: ${adminPassword}`);
-  console.log("   Admin 2: operador@tny.dev / senha: operador123");
-  console.log(
-    `   ${categoryNames.length} categorias, ${products.length} produtos`,
-  );
-  console.log(`   ${leads.length} leads, 2 pedidos`);
+  console.log(`   ${totalAdmins} admins (operador/gerente/estoque/suporte@tny.dev)`);
+  console.log(`   ${categoryNames.length} categorias`);
+  console.log(`   ${products.length} produtos, ${totalVariants} variantes, ${totalImages} imagens`);
+  console.log(`   ${leads.length} leads, ~${totalOrders} pedidos`);
 }
 
 main()
