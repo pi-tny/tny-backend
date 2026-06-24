@@ -28,7 +28,11 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_PROVIDER: postgres
+      DATABASE_PROVIDER: ${DATABASE_PROVIDER:-postgres}
+      # ainda testando
+      # kept internal (not from .env's DATABASE_URL): inside the compose network the
+      # container reaches Postgres via the service name `db:5432`, whereas the host's
+      # .env points at localhost:5433 (the published port) for host-side tooling.
       DATABASE_URL: postgresql://tny:tny@db:5432/tny
       JWT_SECRET: ${JWT_SECRET:-change-me}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}

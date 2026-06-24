@@ -15,6 +15,7 @@ export default defineConfig({
     // Unit tests ignore the DB. dotenv won't override vars already set here.
     env: {
       DATABASE_URL: "file:./prisma/test.db",
+      DATABASE_PROVIDER: "sqlite",
       NODE_ENV: "test",
       JWT_SECRET: "test-secret",
       CORS_ORIGIN: "*",

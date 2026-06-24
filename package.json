@@ -17,7 +17,8 @@
     "db:migrate": "node scripts/prisma.mjs migrate dev",
     "db:generate": "node scripts/prisma.mjs generate",
     "db:seed": "node scripts/prisma.mjs db seed",
-    "db:reset": "node scripts/prisma.mjs migrate reset"
+    "db:reset": "node scripts/prisma.mjs migrate reset",
+    "db:studio": "node scripts/prisma.mjs studio"
   },
   "keywords": [],
   "author": "",
