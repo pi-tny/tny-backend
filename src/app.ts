@@ -5,12 +5,14 @@ import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import {
   jsonSchemaTransform,
+  jsonSchemaTransformObject,
   serializerCompiler,
   validatorCompiler,
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { env } from "@/env";
 import { openapiConfig } from "@/http/openapi";
+import { registerNamedSchemas } from "@/http/openapi-schemas";
 import { errorHandler } from "@/http/error-handler";
 import { healthRoutes } from "@/http/controllers/health/routes";
 import { adminAuthRoutes } from "@/http/controllers/admin-auth/routes";
@@ -52,11 +54,15 @@ app.register(cors, {
 });
 
 // Swagger: the OpenAPI spec is generated from the routes' Zod schemas via
-// `jsonSchemaTransform`; global metadata (info/servers/tags/securitySchemes)
-// comes from @/http/openapi. UI at /docs, spec JSON at /docs/json.
+// `jsonSchemaTransform`; reusable schemas registered by `registerNamedSchemas`
+// become `components/schemas` ($ref) through `jsonSchemaTransformObject`. Global
+// metadata (info/servers/tags/securitySchemes) comes from @/http/openapi.
+// UI at /docs, spec JSON at /docs/json.
+registerNamedSchemas();
 app.register(fastifySwagger, {
   openapi: openapiConfig,
   transform: jsonSchemaTransform,
+  transformObject: jsonSchemaTransformObject,
 });
 app.register(fastifySwaggerUi, { routePrefix: "/docs" });
 

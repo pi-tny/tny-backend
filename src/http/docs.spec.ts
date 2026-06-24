@@ -59,4 +59,21 @@ describe("OpenAPI docs (generated)", () => {
       { bearerAuth: [] },
     ]);
   });
+
+  it("exposes reusable schemas as named $ref components", async () => {
+    const spec = (
+      await app.inject({ method: "GET", url: "/docs/json" })
+    ).json();
+
+    // named components exist
+    expect(spec.components.schemas.Category).toBeTruthy();
+    expect(spec.components.schemas.ProductDetail).toBeTruthy();
+
+    // and responses reference them instead of inlining
+    const categoryItems =
+      spec.paths["/categories"].get.responses["200"].content[
+        "application/json"
+      ].schema.properties.data.items;
+    expect(categoryItems).toEqual({ $ref: "#/components/schemas/Category" });
+  });
 });

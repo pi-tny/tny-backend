@@ -40,8 +40,10 @@ Ordem: **Auth → Products → Orders → Leads → Admins**.
   `securitySchemes`) em `src/http/openapi.ts`. Cada rota traz
   `summary`/`description`/`security` no `schema`; request/response vêm dos schemas
   Zod. Teste de paridade em `src/http/docs.spec.ts` (`/docs/json`). YAML removido.
-  - **Pendência opcional:** os schemas hoje são **inline** por rota (não há
-    `components/schemas` reutilizáveis). Para `$ref` nomeados, usar
-    `createJsonSchemaTransformObject` + `.meta({ id })` nos schemas Zod.
+  - ✅ **Componentes `$ref` nomeados.** `src/http/openapi-schemas.ts` registra os
+    schemas reutilizáveis no `z.globalRegistry` (id) e o `app.ts` usa
+    `transformObject: jsonSchemaTransformObject` → respostas/bodies viram `$ref`
+    para `components/schemas`. A lib emite cada schema nas duas direções
+    (`Xxx` output + `XxxInput` input).
 - ⬜ (opcional) Script `db:seed:pg` (generate-postgres + seed) para semear o
   Postgres pelo host sem o passo manual de regenerar o client.
