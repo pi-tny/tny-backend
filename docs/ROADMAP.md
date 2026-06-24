@@ -45,5 +45,7 @@ Ordem: **Auth → Products → Orders → Leads → Admins**.
     `transformObject: jsonSchemaTransformObject` → respostas/bodies viram `$ref`
     para `components/schemas`. A lib emite cada schema nas duas direções
     (`Xxx` output + `XxxInput` input).
-- ⬜ (opcional) Script `db:seed:pg` (generate-postgres + seed) para semear o
-  Postgres pelo host sem o passo manual de regenerar o client.
+- ✅ Script `db:seed:pg` (`scripts/seed-pg.mjs`) — semeia o Postgres pelo host
+  num comando: gera o client postgres → `migrate deploy` → seed → restaura o
+  client sqlite (mantém o default test-ready). Usa `DATABASE_URL` do `.env`
+  (precisa apontar p/ Postgres, ex. `localhost:5433`).
