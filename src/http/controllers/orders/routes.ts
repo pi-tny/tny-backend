@@ -17,6 +17,11 @@ export async function ordersRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Criar pedido (antes do redirect ao WhatsApp)",
+        description:
+          "Registra o pedido com itens congelados (nome, cor, tamanho, preço " +
+          "unitário pela regra de herança + promoção) e retorna `id` e " +
+          "`whatsapp_url` pronta. `status` inicial é `new`.",
         body: orderCreateSchema,
         response: {
           201: orderCreatedResponseSchema,

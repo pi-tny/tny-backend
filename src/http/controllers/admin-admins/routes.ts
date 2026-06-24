@@ -7,6 +7,7 @@ import {
   validationErrorResponseSchema,
 } from "@/http/http-schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import { adminSchema } from "@/http/controllers/admin-auth/schemas";
 import { list } from "./list";
 import { create } from "./create";
@@ -30,6 +31,8 @@ export async function adminAdminsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar admins",
+        security: bearerSecurity,
         response: {
           200: dataResponse(z.array(adminSchema)),
           401: errorResponseSchema,
@@ -44,6 +47,8 @@ export async function adminAdminsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Criar admin",
+        security: bearerSecurity,
         body: adminCreateSchema,
         response: {
           201: dataResponse(adminSchema),
@@ -61,6 +66,8 @@ export async function adminAdminsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Atualizar admin (inclui ativo/inativo)",
+        security: bearerSecurity,
         params: adminIdParamSchema,
         body: adminUpdateSchema,
         response: {
@@ -80,6 +87,8 @@ export async function adminAdminsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Remover admin",
+        security: bearerSecurity,
         params: adminIdParamSchema,
         response: {
           401: errorResponseSchema,

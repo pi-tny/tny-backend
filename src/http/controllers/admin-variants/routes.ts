@@ -7,6 +7,7 @@ import {
   validationErrorResponseSchema,
 } from "@/http/http-schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import {
   productIdParamSchema,
   variantViewSchema,
@@ -33,6 +34,8 @@ export async function adminVariantsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar variações de um produto",
+        security: bearerSecurity,
         params: productIdParamSchema,
         response: {
           200: dataResponse(z.array(variantViewSchema)),
@@ -48,6 +51,8 @@ export async function adminVariantsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Criar variação",
+        security: bearerSecurity,
         params: productIdParamSchema,
         body: variantCreateSchema,
         response: {
@@ -67,6 +72,8 @@ export async function adminVariantsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Atualizar variação (estoque e preço próprio)",
+        security: bearerSecurity,
         params: variantIdParamSchema,
         body: variantUpdateSchema,
         response: {
@@ -86,6 +93,8 @@ export async function adminVariantsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Remover variação",
+        security: bearerSecurity,
         params: variantIdParamSchema,
         response: {
           401: errorResponseSchema,

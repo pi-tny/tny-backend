@@ -7,6 +7,7 @@ import {
   validationErrorResponseSchema,
 } from "@/http/http-schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import { list } from "./list";
 import { get } from "./get";
 import { updateStatus } from "./update-status";
@@ -31,6 +32,8 @@ export async function adminOrdersRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar pedidos",
+        security: bearerSecurity,
         querystring: listOrdersQuerySchema,
         response: {
           200: z.object({
@@ -49,6 +52,8 @@ export async function adminOrdersRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Detalhe do pedido",
+        security: bearerSecurity,
         params: orderIdParamSchema,
         response: {
           200: dataResponse(orderDetailSchema),
@@ -65,6 +70,8 @@ export async function adminOrdersRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Atualizar status do pedido",
+        security: bearerSecurity,
         params: orderIdParamSchema,
         body: updateOrderStatusSchema,
         response: {

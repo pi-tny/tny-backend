@@ -8,6 +8,7 @@ export async function healthRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ["Health"],
+        summary: "Health check",
         response: {
           200: z.object({ status: z.string(), timestamp: z.string() }),
         },

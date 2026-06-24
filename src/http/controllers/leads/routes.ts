@@ -14,6 +14,11 @@ export async function leadsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Cadastrar lead para newsletter",
+        description:
+          "Cadastro opcional para receber promoções. Em email duplicado, " +
+          "atualiza silenciosamente (upsert) e renova `consent_date`. " +
+          "`marketing_consent` é registrado por boas práticas de LGPD.",
         body: leadCreateSchema,
         response: {
           201: dataResponse(leadSchema),

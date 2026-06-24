@@ -20,6 +20,7 @@ export async function categoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar categorias",
         querystring: listCategoriesQuerySchema,
         response: { 200: categoryListResponseSchema },
       },
@@ -32,6 +33,7 @@ export async function categoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Detalhe de uma categoria",
         params: categoryIdParamSchema,
         response: {
           200: dataResponse(categorySchema),

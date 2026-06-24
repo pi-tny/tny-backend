@@ -6,6 +6,7 @@ import {
   validationErrorResponseSchema,
 } from "@/http/http-schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import {
   imageSchema,
   productIdParamSchema,
@@ -31,6 +32,12 @@ export async function adminImagesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Cadastrar imagem do produto (por URL)",
+        description:
+          "A imagem é referenciada por `url` já hospedada (não há upload " +
+          "binário). Com `variant_id`, é específica daquela variação; se " +
+          "`null`/omitido, é imagem geral do produto.",
+        security: bearerSecurity,
         params: productIdParamSchema,
         body: imageCreateSchema,
         response: {
@@ -49,6 +56,8 @@ export async function adminImagesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Atualizar metadados da imagem",
+        security: bearerSecurity,
         params: imageIdParamSchema,
         body: imageUpdateSchema,
         response: {
@@ -67,6 +76,8 @@ export async function adminImagesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Remover imagem",
+        security: bearerSecurity,
         params: imageIdParamSchema,
         response: {
           401: errorResponseSchema,

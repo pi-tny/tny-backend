@@ -1,5 +1,3 @@
-# Postgres-based stack: api + postgres. The api applies the postgres migrations
-# on startup (scripts/prisma.mjs syncs the schema provider to DATABASE_PROVIDER).
 services:
   db:
     image: postgres:16-alpine

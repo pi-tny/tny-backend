@@ -11,6 +11,7 @@ import {
   listCategoriesQuerySchema,
 } from "@/http/controllers/categories/schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import { list } from "./list";
 import { create } from "./create";
 import { update } from "./update";
@@ -29,6 +30,8 @@ export async function adminCategoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar categorias",
+        security: bearerSecurity,
         querystring: listCategoriesQuerySchema,
         response: {
           200: categoryListResponseSchema,
@@ -44,6 +47,8 @@ export async function adminCategoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Criar categoria",
+        security: bearerSecurity,
         body: categoryBodySchema,
         response: {
           201: dataResponse(categorySchema),
@@ -60,6 +65,8 @@ export async function adminCategoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Atualizar categoria",
+        security: bearerSecurity,
         params: categoryIdParamSchema,
         body: categoryBodySchema,
         response: {
@@ -78,6 +85,8 @@ export async function adminCategoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Remover categoria",
+        security: bearerSecurity,
         params: categoryIdParamSchema,
         response: {
           401: errorResponseSchema,

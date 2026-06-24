@@ -6,6 +6,7 @@ import {
   validationErrorResponseSchema,
 } from "@/http/http-schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import { authenticate } from "./authenticate";
 import { profile } from "./profile";
 import { logout } from "./logout";
@@ -21,6 +22,10 @@ export async function adminAuthRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Login do administrador",
+        description:
+          "Retorna um JWT (Bearer, validade 1 dia). Auth é Bearer-only, sem " +
+          "cookie de refresh.",
         body: loginBodySchema,
         response: {
           200: dataResponse(tokenSchema),
@@ -38,6 +43,8 @@ export async function adminAuthRoutes(app: FastifyInstance) {
       onRequest: [verifyJwt],
       schema: {
         tags,
+        summary: "Dados do admin logado",
+        security: bearerSecurity,
         response: {
           200: dataResponse(adminSchema),
           401: errorResponseSchema,
@@ -54,6 +61,8 @@ export async function adminAuthRoutes(app: FastifyInstance) {
       onRequest: [verifyJwt],
       schema: {
         tags,
+        summary: "Logout",
+        security: bearerSecurity,
         response: {
           401: errorResponseSchema,
         },

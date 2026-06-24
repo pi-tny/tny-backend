@@ -34,18 +34,14 @@ Ordem: **Auth → Products → Orders → Leads → Admins**.
 
 ## Próximos passos (pós-categorias)
 
-- ⬜ **Swagger gerado por TS (substituir `docs/openapi.yaml` estático).** Hoje
-  `src/app.ts` registra o `@fastify/swagger` em `mode: "static"` lendo o YAML do
-  disco. Migrar para geração automática a partir dos schemas Zod das rotas (já
-  usamos `fastify-type-provider-zod`), **sem perder** o que o YAML tem: `info`,
-  `servers`, `tags`, `securitySchemes`, descrições longas (regra de preço,
-  imagens, LGPD) e exemplos. Plano:
-  1. Config global do swagger em TS (`info`/`servers`/`tags`/`securitySchemes`)
-     + `transform` do `fastify-type-provider-zod` para gerar o OpenAPI das rotas.
-  2. Enriquecer os schemas/rotas com `summary`/`description`/`.meta({ example })`
-     migrando o conteúdo do YAML; remover `docs/openapi.yaml`.
-  3. Teste de paridade (`app.inject('/docs/json')`) para garantir que nada sumiu.
-  - Tarefa de 1 sessão dedicada (~15 `routes.ts` + config); 2 commits (infra,
-    depois conteúdo).
+- ✅ **Swagger gerado por TS (substituiu `docs/openapi.yaml` estático).**
+  `src/app.ts` registra o `@fastify/swagger` em modo dinâmico com
+  `transform: jsonSchemaTransform`; metadados globais (`info`/`servers`/`tags`/
+  `securitySchemes`) em `src/http/openapi.ts`. Cada rota traz
+  `summary`/`description`/`security` no `schema`; request/response vêm dos schemas
+  Zod. Teste de paridade em `src/http/docs.spec.ts` (`/docs/json`). YAML removido.
+  - **Pendência opcional:** os schemas hoje são **inline** por rota (não há
+    `components/schemas` reutilizáveis). Para `$ref` nomeados, usar
+    `createJsonSchemaTransformObject` + `.meta({ id })` nos schemas Zod.
 - ⬜ (opcional) Script `db:seed:pg` (generate-postgres + seed) para semear o
   Postgres pelo host sem o passo manual de regenerar o client.

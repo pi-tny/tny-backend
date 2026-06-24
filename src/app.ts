@@ -1,16 +1,16 @@
-import path from "node:path";
-import { existsSync } from "node:fs";
 import fastify from "fastify";
 import fastifyJwt from "@fastify/jwt";
 import cors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import {
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { env } from "@/env";
+import { openapiConfig } from "@/http/openapi";
 import { errorHandler } from "@/http/error-handler";
 import { healthRoutes } from "@/http/controllers/health/routes";
 import { adminAuthRoutes } from "@/http/controllers/admin-auth/routes";
@@ -51,23 +51,14 @@ app.register(cors, {
       : env.CORS_ORIGIN.split(",").map((origin) => origin.trim()),
 });
 
-// Swagger: docs/openapi.yaml is the source of truth, served statically.
-// The spec is NOT generated from the routes. UI at /docs, spec JSON at /docs/json.
-// Resolved from the working dir so it works under tsx, the bundled build and
-// serverless (Vercel, where __dirname differs); skipped if the file is absent.
-const openapiPath = path.resolve(process.cwd(), "docs/openapi.yaml");
-if (existsSync(openapiPath)) {
-  app.register(fastifySwagger, {
-    mode: "static",
-    specification: {
-      path: openapiPath,
-      baseDir: path.resolve(process.cwd(), "docs"),
-    },
-  });
-  app.register(fastifySwaggerUi, {
-    routePrefix: "/docs",
-  });
-}
+// Swagger: the OpenAPI spec is generated from the routes' Zod schemas via
+// `jsonSchemaTransform`; global metadata (info/servers/tags/securitySchemes)
+// comes from @/http/openapi. UI at /docs, spec JSON at /docs/json.
+app.register(fastifySwagger, {
+  openapi: openapiConfig,
+  transform: jsonSchemaTransform,
+});
+app.register(fastifySwaggerUi, { routePrefix: "/docs" });
 
 // Auth is Bearer-only (Authorization header); no refresh cookie.
 app.register(fastifyJwt, {

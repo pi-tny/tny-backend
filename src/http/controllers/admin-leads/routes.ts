@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { errorResponseSchema } from "@/http/http-schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import {
   leadIdParamSchema,
   leadSchema,
@@ -24,6 +25,8 @@ export async function adminLeadsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar leads",
+        security: bearerSecurity,
         querystring: listLeadsQuerySchema,
         response: {
           200: z.object({
@@ -42,6 +45,8 @@ export async function adminLeadsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Remover lead (direito de exclusão — LGPD)",
+        security: bearerSecurity,
         params: leadIdParamSchema,
         response: {
           401: errorResponseSchema,

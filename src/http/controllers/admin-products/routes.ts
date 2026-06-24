@@ -8,6 +8,7 @@ import {
 } from "@/http/http-schemas";
 import { categorySchema } from "@/http/controllers/categories/schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
+import { bearerSecurity } from "@/http/openapi";
 import {
   productDetailSchema,
   productIdParamSchema,
@@ -38,6 +39,9 @@ export async function adminProductsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar produtos (admin)",
+        description: "Inclui produtos inativos. Filtros opcionais.",
+        security: bearerSecurity,
         querystring: adminListProductsQuerySchema,
         response: {
           200: productListResponseSchema,
@@ -53,6 +57,8 @@ export async function adminProductsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Criar produto",
+        security: bearerSecurity,
         body: productCreateSchema,
         response: {
           201: dataResponse(productDetailSchema),
@@ -71,6 +77,8 @@ export async function adminProductsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Detalhe (admin)",
+        security: bearerSecurity,
         params: productIdParamSchema,
         response: {
           200: dataResponse(productDetailSchema),
@@ -87,6 +95,8 @@ export async function adminProductsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Atualizar produto",
+        security: bearerSecurity,
         params: productIdParamSchema,
         body: productUpdateSchema,
         response: {
@@ -107,6 +117,8 @@ export async function adminProductsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Remover produto (soft delete via `active=false`)",
+        security: bearerSecurity,
         params: productIdParamSchema,
         response: {
           401: errorResponseSchema,
@@ -122,6 +134,9 @@ export async function adminProductsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Substituir categorias do produto",
+        description: "Substitui o conjunto inteiro de categorias associadas.",
+        security: bearerSecurity,
         params: productIdParamSchema,
         body: setCategoriesBodySchema,
         response: {

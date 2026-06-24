@@ -24,6 +24,12 @@ export async function productsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Listar produtos (com filtros e busca)",
+        description:
+          "Retorna produtos ativos. Suporta busca por nome, filtro por " +
+          "categoria, faixa de preço (base), promoção e estoque, além de " +
+          "ordenação. Cada produto traz `cover_image` resolvida e `price` base " +
+          "(e `promotional_price` se em promoção).",
         querystring: listProductsQuerySchema,
         response: { 200: productListResponseSchema },
       },
@@ -36,6 +42,11 @@ export async function productsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: "Detalhe completo do produto",
+        description:
+          "Retorna o produto com suas variações, imagens e categorias. Cada " +
+          "variação retorna `final_price` (regra de herança + promoção) e " +
+          "`quantity` (estoque).",
         params: productIdParamSchema,
         response: {
           200: dataResponse(productDetailSchema),
@@ -51,6 +62,10 @@ export async function productsRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        summary: 'Produtos relacionados ("Veja também")',
+        description:
+          "Produtos ativos das mesmas categorias do produto informado, " +
+          "excluindo ele próprio. Ordem aleatória, limitado a `limit`.",
         params: productIdParamSchema,
         querystring: relatedQuerySchema,
         response: {
