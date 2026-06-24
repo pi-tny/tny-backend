@@ -1,4 +1,3 @@
-import { z } from "zod";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
@@ -6,7 +5,11 @@ import {
   errorResponseSchema,
   validationErrorResponseSchema,
 } from "@/http/http-schemas";
-import { categorySchema } from "@/http/controllers/categories/schemas";
+import {
+  categoryListResponseSchema,
+  categorySchema,
+  listCategoriesQuerySchema,
+} from "@/http/controllers/categories/schemas";
 import { verifyJwt } from "@/http/middlewares/verify-jwt";
 import { list } from "./list";
 import { create } from "./create";
@@ -26,8 +29,9 @@ export async function adminCategoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
+        querystring: listCategoriesQuerySchema,
         response: {
-          200: dataResponse(z.array(categorySchema)),
+          200: categoryListResponseSchema,
           401: errorResponseSchema,
         },
       },

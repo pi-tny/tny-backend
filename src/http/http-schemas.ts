@@ -15,3 +15,19 @@ export const validationErrorResponseSchema = z.object({
 
 export const dataResponse = <T extends z.ZodTypeAny>(schema: T) =>
   z.object({ data: schema });
+
+// shared pagination meta (openapi PaginationMeta).
+export const paginationMetaSchema = z.object({
+  page: z.number().int(),
+  limit: z.number().int(),
+  total: z.number().int(),
+  total_pages: z.number().int(),
+});
+
+export function buildPaginationMeta(
+  total: number,
+  page: number,
+  limit: number,
+) {
+  return { page, limit, total, total_pages: Math.ceil(total / limit) };
+}

@@ -2,14 +2,23 @@ import type { Category } from "../../../generated/prisma";
 import type {
   CategoriesRepository,
   CategoryInput,
+  CategoryListResult,
+  ListCategoriesParams,
 } from "@/repositories/categories-repository";
 
 export class InMemoryCategoriesRepository implements CategoriesRepository {
   public items: Category[] = [];
   private nextId = 1;
 
-  async findMany(): Promise<Category[]> {
-    return [...this.items].sort((a, b) => a.id - b.id);
+  async findMany({
+    page,
+    limit,
+  }: ListCategoriesParams): Promise<CategoryListResult> {
+    const ordered = [...this.items].sort((a, b) => a.id - b.id);
+    const start = (page - 1) * limit;
+    const items = ordered.slice(start, start + limit);
+
+    return { items, total: ordered.length, page, limit };
   }
 
   async findById(id: number): Promise<Category | null> {

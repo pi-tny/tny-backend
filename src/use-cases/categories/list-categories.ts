@@ -1,15 +1,25 @@
-import type { Category } from "../../../generated/prisma";
-import type { CategoriesRepository } from "@/repositories/categories-repository";
+import type {
+  CategoriesRepository,
+  CategoryListResult,
+} from "@/repositories/categories-repository";
+
+interface ListCategoriesUseCaseRequest {
+  page?: number;
+  limit?: number;
+}
 
 interface ListCategoriesUseCaseResponse {
-  categories: Category[];
+  result: CategoryListResult;
 }
 
 export class ListCategoriesUseCase {
   constructor(private categoriesRepository: CategoriesRepository) {}
 
-  async execute(): Promise<ListCategoriesUseCaseResponse> {
-    const categories = await this.categoriesRepository.findMany();
-    return { categories };
+  async execute({
+    page = 1,
+    limit = 20,
+  }: ListCategoriesUseCaseRequest = {}): Promise<ListCategoriesUseCaseResponse> {
+    const result = await this.categoriesRepository.findMany({ page, limit });
+    return { result };
   }
 }

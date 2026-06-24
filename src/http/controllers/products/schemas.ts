@@ -1,5 +1,13 @@
 import { z } from "zod";
 import { categorySchema } from "@/http/controllers/categories/schemas";
+import {
+  buildPaginationMeta,
+  paginationMetaSchema,
+} from "@/http/http-schemas";
+
+// re-exported so existing imports keep working; defined in the neutral module
+// to avoid a categories <-> products schema import cycle.
+export { buildPaginationMeta, paginationMetaSchema };
 
 export const productIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -44,13 +52,6 @@ export const productDetailSchema = productSummarySchema.extend({
   images: z.array(imageSchema),
 });
 
-export const paginationMetaSchema = z.object({
-  page: z.number().int(),
-  limit: z.number().int(),
-  total: z.number().int(),
-  total_pages: z.number().int(),
-});
-
 export const productListResponseSchema = z.object({
   data: z.array(productSummarySchema),
   meta: paginationMetaSchema,
@@ -93,11 +94,3 @@ export const relatedQuerySchema = z.object({
 export type ProductIdParam = z.infer<typeof productIdParamSchema>;
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
 export type RelatedQuery = z.infer<typeof relatedQuerySchema>;
-
-export function buildPaginationMeta(
-  total: number,
-  page: number,
-  limit: number,
-) {
-  return { page, limit, total, total_pages: Math.ceil(total / limit) };
-}

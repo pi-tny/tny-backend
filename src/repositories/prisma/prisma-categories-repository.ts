@@ -3,11 +3,21 @@ import { prisma } from "@/lib/prisma";
 import type {
   CategoriesRepository,
   CategoryInput,
+  ListCategoriesParams,
 } from "@/repositories/categories-repository";
 
 export class PrismaCategoriesRepository implements CategoriesRepository {
-  findMany() {
-    return prisma.category.findMany({ orderBy: { id: "asc" } });
+  async findMany({ page, limit }: ListCategoriesParams) {
+    const [items, total] = await Promise.all([
+      prisma.category.findMany({
+        orderBy: { id: "asc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.category.count(),
+    ]);
+
+    return { items, total, page, limit };
   }
 
   findById(id: number) {

@@ -1,10 +1,14 @@
-import { z } from "zod";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { dataResponse, errorResponseSchema } from "@/http/http-schemas";
 import { list } from "./list";
 import { get } from "./get";
-import { categoryIdParamSchema, categorySchema } from "./schemas";
+import {
+  categoryIdParamSchema,
+  categoryListResponseSchema,
+  categorySchema,
+  listCategoriesQuerySchema,
+} from "./schemas";
 
 const tags = ["Categories (public)"];
 
@@ -16,7 +20,8 @@ export async function categoriesRoutes(app: FastifyInstance) {
     {
       schema: {
         tags,
-        response: { 200: dataResponse(z.array(categorySchema)) },
+        querystring: listCategoriesQuerySchema,
+        response: { 200: categoryListResponseSchema },
       },
     },
     list,

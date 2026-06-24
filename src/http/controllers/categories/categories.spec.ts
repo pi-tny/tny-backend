@@ -30,6 +30,32 @@ describe("Categories (public) e2e", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.data).toHaveLength(2);
     expect(response.body.data[0]).toHaveProperty("id");
+    expect(response.body.meta).toMatchObject({
+      page: 1,
+      limit: 20,
+      total: 2,
+      total_pages: 1,
+    });
+  });
+
+  it("should paginate categories via query params", async () => {
+    await prisma.category.createMany({
+      data: Array.from({ length: 25 }, (_, i) => ({
+        name: `Cat ${i + 1}`,
+        description: null,
+      })),
+    });
+
+    const response = await request(app.server).get("/categories?page=2&limit=10");
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data).toHaveLength(10);
+    expect(response.body.meta).toMatchObject({
+      page: 2,
+      limit: 10,
+      total: 25,
+      total_pages: 3,
+    });
   });
 
   it("should get a category by id", async () => {
