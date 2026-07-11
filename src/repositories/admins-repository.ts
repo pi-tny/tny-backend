@@ -13,6 +13,11 @@ export interface UpdateAdminData {
   active?: boolean;
 }
 
+export interface LoginState {
+  failed_login_attempts: number;
+  locked_until: Date | null;
+}
+
 export interface AdminsRepository {
   findByEmail(email: string): Promise<Admin | null>;
   findById(id: number): Promise<Admin | null>;
@@ -20,4 +25,6 @@ export interface AdminsRepository {
   create(data: CreateAdminData): Promise<Admin>;
   update(id: number, data: UpdateAdminData): Promise<Admin | null>;
   delete(id: number): Promise<boolean>;
+  // Atualiza o controle de tentativas de login / bloqueio da conta.
+  updateLoginState(id: number, data: LoginState): Promise<void>;
 }

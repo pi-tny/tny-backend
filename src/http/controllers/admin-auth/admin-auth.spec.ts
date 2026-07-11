@@ -62,6 +62,36 @@ describe("Admin Auth e2e", () => {
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
   });
 
+  it("should lock the account after 5 failed attempts (423)", async () => {
+    await prisma.admin.create({
+      data: {
+        name: "Admin",
+        email: "admin@tny.dev",
+        password_hash: await hash("password123", 6),
+      },
+    });
+
+    // 4 falhas → 401; a 5ª atinge o limite → 423 (bloqueada).
+    for (let i = 0; i < 4; i++) {
+      const r = await request(app.server)
+        .post("/admin/auth/login")
+        .send({ email: "admin@tny.dev", password: "wrong" });
+      expect(r.statusCode).toBe(401);
+    }
+
+    const locking = await request(app.server)
+      .post("/admin/auth/login")
+      .send({ email: "admin@tny.dev", password: "wrong" });
+    expect(locking.statusCode).toBe(423);
+    expect(locking.body.error.code).toBe("ACCOUNT_LOCKED");
+
+    // Mesmo com a senha correta, permanece bloqueada.
+    const correct = await request(app.server)
+      .post("/admin/auth/login")
+      .send({ email: "admin@tny.dev", password: "password123" });
+    expect(correct.statusCode).toBe(423);
+  });
+
   it("should return the profile of the authenticated admin without the password hash", async () => {
     const { token, admin } = await createAndAuthenticate(app);
 

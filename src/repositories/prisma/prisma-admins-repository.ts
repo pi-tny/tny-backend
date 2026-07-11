@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type {
   AdminsRepository,
   CreateAdminData,
+  LoginState,
   UpdateAdminData,
 } from "@/repositories/admins-repository";
 
@@ -35,6 +36,10 @@ export class PrismaAdminsRepository implements AdminsRepository {
       }
       throw error;
     }
+  }
+
+  async updateLoginState(id: number, data: LoginState) {
+    await prisma.admin.update({ where: { id }, data });
   }
 
   async delete(id: number) {

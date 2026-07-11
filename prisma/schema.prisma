@@ -131,12 +131,14 @@ model OrderItem {
 }
 
 model Admin {
-  id            Int      @id @default(autoincrement())
-  name          String
-  email         String   @unique
-  password_hash String
-  active        Boolean  @default(true)
-  created_at    DateTime @default(now())
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  email                 String    @unique
+  password_hash         String
+  active                Boolean   @default(true)
+  failed_login_attempts Int       @default(0)
+  locked_until          DateTime?
+  created_at            DateTime  @default(now())
 
   @@map("admins")
 }

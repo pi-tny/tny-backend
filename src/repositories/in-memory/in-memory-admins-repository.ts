@@ -2,6 +2,7 @@ import type { Admin } from "../../../generated/prisma";
 import type {
   AdminsRepository,
   CreateAdminData,
+  LoginState,
   UpdateAdminData,
 } from "@/repositories/admins-repository";
 
@@ -28,6 +29,8 @@ export class InMemoryAdminsRepository implements AdminsRepository {
       email: data.email,
       password_hash: data.password_hash,
       active: true,
+      failed_login_attempts: 0,
+      locked_until: null,
       created_at: new Date(),
     };
     this.items.push(admin);
@@ -46,6 +49,13 @@ export class InMemoryAdminsRepository implements AdminsRepository {
     if (data.active !== undefined) admin.active = data.active;
 
     return admin;
+  }
+
+  async updateLoginState(id: number, data: LoginState): Promise<void> {
+    const admin = this.items.find((item) => item.id === id);
+    if (!admin) return;
+    admin.failed_login_attempts = data.failed_login_attempts;
+    admin.locked_until = data.locked_until;
   }
 
   async delete(id: number): Promise<boolean> {

@@ -2,18 +2,23 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { hash } from "bcryptjs";
 import { InMemoryAdminsRepository } from "@/repositories/in-memory/in-memory-admins-repository";
 import { InvalidCredentialsError } from "@/use-cases/errors/invalid-credentials-error";
-import { AuthenticateUseCase } from "./authenticate";
+import { AccountLockedError } from "@/use-cases/errors/account-locked-error";
+import { AuthenticateUseCase, MAX_LOGIN_ATTEMPTS } from "./authenticate";
 
 let adminsRepository: InMemoryAdminsRepository;
 let sut: AuthenticateUseCase;
 
-async function seedAdmin(overrides: { active?: boolean } = {}) {
+async function seedAdmin(
+  overrides: { active?: boolean; failed_login_attempts?: number; locked_until?: Date | null } = {},
+) {
   adminsRepository.items.push({
     id: 1,
     name: "Admin",
     email: "admin@tny.dev",
     password_hash: await hash("password123", 6),
     active: overrides.active ?? true,
+    failed_login_attempts: overrides.failed_login_attempts ?? 0,
+    locked_until: overrides.locked_until ?? null,
     created_at: new Date(),
   });
 }
@@ -55,5 +60,52 @@ describe("Authenticate Use Case", () => {
     await expect(() =>
       sut.execute({ email: "admin@tny.dev", password: "password123" }),
     ).rejects.toBeInstanceOf(InvalidCredentialsError);
+  });
+
+  it("should lock the account after too many failed attempts", async () => {
+    await seedAdmin();
+
+    // As primeiras (MAX-1) falhas ainda são InvalidCredentials.
+    for (let i = 0; i < MAX_LOGIN_ATTEMPTS - 1; i++) {
+      await expect(() =>
+        sut.execute({ email: "admin@tny.dev", password: "wrong-password" }),
+      ).rejects.toBeInstanceOf(InvalidCredentialsError);
+    }
+
+    // A falha que atinge o limite bloqueia a conta.
+    await expect(() =>
+      sut.execute({ email: "admin@tny.dev", password: "wrong-password" }),
+    ).rejects.toBeInstanceOf(AccountLockedError);
+
+    // Mesmo com a senha correta, permanece bloqueada.
+    await expect(() =>
+      sut.execute({ email: "admin@tny.dev", password: "password123" }),
+    ).rejects.toBeInstanceOf(AccountLockedError);
+  });
+
+  it("should reject while locked_until is in the future", async () => {
+    await seedAdmin({ locked_until: new Date(Date.now() + 60_000) });
+
+    await expect(() =>
+      sut.execute({ email: "admin@tny.dev", password: "password123" }),
+    ).rejects.toBeInstanceOf(AccountLockedError);
+  });
+
+  it("should reset the failed counter on a successful login", async () => {
+    await seedAdmin({ failed_login_attempts: 3 });
+
+    await sut.execute({ email: "admin@tny.dev", password: "password123" });
+
+    expect(adminsRepository.items[0].failed_login_attempts).toBe(0);
+    expect(adminsRepository.items[0].locked_until).toBeNull();
+  });
+
+  it("should allow login again once the lock has expired", async () => {
+    await seedAdmin({ locked_until: new Date(Date.now() - 1000), failed_login_attempts: 5 });
+
+    const { admin } = await sut.execute({ email: "admin@tny.dev", password: "password123" });
+
+    expect(admin.id).toBe(1);
+    expect(adminsRepository.items[0].failed_login_attempts).toBe(0);
   });
 });

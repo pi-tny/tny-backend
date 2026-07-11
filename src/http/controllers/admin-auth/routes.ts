@@ -31,6 +31,7 @@ export async function adminAuthRoutes(app: FastifyInstance) {
           200: dataResponse(tokenSchema),
           400: validationErrorResponseSchema,
           401: errorResponseSchema,
+          423: errorResponseSchema,
         },
       },
     },
