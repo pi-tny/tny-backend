@@ -47,6 +47,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
       color: variant.color,
       size: variant.size,
       price: variant.price,
+      quantity: variant.quantity,
       product_name: variant.product.name,
       product_price: variant.product.price,
       product_promotional_price: variant.product.promotional_price,
@@ -54,28 +55,41 @@ export class PrismaOrdersRepository implements OrdersRepository {
   }
 
   async create(data: CreateOrderData, items: ResolvedOrderItem[]) {
-    const order = await prisma.order.create({
-      data: {
-        name: data.name,
-        phone: data.phone,
-        email: data.email ?? null,
-        payment_method: data.payment_method ?? "to_be_defined",
-        message: data.message ?? null,
-        notes: data.notes ?? null,
-        total: data.total,
-        items: {
-          create: items.map((item) => ({
-            variant_id: item.variant_id,
-            product_name: item.product_name,
-            color: item.color,
-            size: item.size,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-          })),
+    // Cria o pedido e decrementa o estoque das variantes atomicamente.
+    const order = await prisma.$transaction(async (tx) => {
+      const created = await tx.order.create({
+        data: {
+          name: data.name,
+          phone: data.phone,
+          email: data.email ?? null,
+          payment_method: data.payment_method ?? "to_be_defined",
+          message: data.message ?? null,
+          notes: data.notes ?? null,
+          total: data.total,
+          items: {
+            create: items.map((item) => ({
+              variant_id: item.variant_id,
+              product_name: item.product_name,
+              color: item.color,
+              size: item.size,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+            })),
+          },
         },
-      },
-      include: { items: true },
+        include: { items: true },
+      });
+
+      for (const item of items) {
+        await tx.variant.update({
+          where: { id: item.variant_id },
+          data: { quantity: { decrement: item.quantity } },
+        });
+      }
+
+      return created;
     });
+
     return toDetail(order);
   }
 

@@ -5,6 +5,7 @@ import type {
   ResolvedOrderItem,
 } from "@/repositories/orders-repository";
 import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
+import { InsufficientStockError } from "@/use-cases/errors/insufficient-stock-error";
 
 interface CreateOrderItemInput {
   variant_id: number;
@@ -40,6 +41,11 @@ export class CreateOrderUseCase {
       );
       if (!snapshot) {
         throw new ResourceNotFoundError();
+      }
+
+      // Reject orders that exceed available stock.
+      if (item.quantity > snapshot.quantity) {
+        throw new InsufficientStockError();
       }
 
       // Freeze details and resolve the effective price at purchase time.

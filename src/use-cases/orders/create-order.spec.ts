@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryOrdersRepository } from "@/repositories/in-memory/in-memory-orders-repository";
 import { ResourceNotFoundError } from "@/use-cases/errors/resource-not-found-error";
+import { InsufficientStockError } from "@/use-cases/errors/insufficient-stock-error";
 import { CreateOrderUseCase } from "./create-order";
 
 let ordersRepository: InMemoryOrdersRepository;
@@ -17,6 +18,7 @@ describe("Create Order Use Case", () => {
       color: "Preto",
       size: "M",
       price: 80,
+      quantity: 10,
       product_name: "Camiseta",
       product_price: 100,
       product_promotional_price: null,
@@ -41,6 +43,7 @@ describe("Create Order Use Case", () => {
       color: "Preto",
       size: "M",
       price: 80,
+      quantity: 10,
       product_name: "Camiseta",
       product_price: 100,
       product_promotional_price: 60,
@@ -60,6 +63,7 @@ describe("Create Order Use Case", () => {
       color: "Preto",
       size: "M",
       price: null,
+      quantity: 10,
       product_name: "Camiseta",
       product_price: 100,
       product_promotional_price: null,
@@ -79,6 +83,7 @@ describe("Create Order Use Case", () => {
       color: "Preto",
       size: "M",
       price: 50,
+      quantity: 10,
       product_name: "A",
       product_price: 50,
       product_promotional_price: null,
@@ -87,6 +92,7 @@ describe("Create Order Use Case", () => {
       color: "Branco",
       size: "G",
       price: 30,
+      quantity: 10,
       product_name: "B",
       product_price: 30,
       product_promotional_price: null,
@@ -102,6 +108,46 @@ describe("Create Order Use Case", () => {
     });
 
     expect(order.total).toBe(130);
+  });
+
+  it("should decrement variant stock after creating the order", async () => {
+    ordersRepository.snapshots.set(1, {
+      color: "Preto",
+      size: "M",
+      price: 50,
+      quantity: 5,
+      product_name: "A",
+      product_price: 50,
+      product_promotional_price: null,
+    });
+
+    await sut.execute({
+      name: "Maria",
+      phone: "x",
+      items: [{ variant_id: 1, quantity: 2 }],
+    });
+
+    expect(ordersRepository.snapshots.get(1)?.quantity).toBe(3);
+  });
+
+  it("should throw when quantity exceeds available stock", async () => {
+    ordersRepository.snapshots.set(1, {
+      color: "Preto",
+      size: "M",
+      price: 50,
+      quantity: 1,
+      product_name: "A",
+      product_price: 50,
+      product_promotional_price: null,
+    });
+
+    await expect(() =>
+      sut.execute({
+        name: "Maria",
+        phone: "x",
+        items: [{ variant_id: 1, quantity: 3 }],
+      }),
+    ).rejects.toBeInstanceOf(InsufficientStockError);
   });
 
   it("should throw when a variant does not exist", async () => {

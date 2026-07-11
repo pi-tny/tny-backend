@@ -2,6 +2,7 @@ export interface OrderVariantSnapshot {
   color: string;
   size: string;
   price: number | null;
+  quantity: number; // estoque atual da variante
   product_name: string;
   product_price: number;
   product_promotional_price: number | null;

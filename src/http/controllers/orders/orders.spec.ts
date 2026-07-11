@@ -64,6 +64,33 @@ describe("Orders e2e", () => {
     expect(item?.unit_price).toBe(80);
   });
 
+  it("should decrement variant stock after the order is created", async () => {
+    const variant = await createVariant({ variant_price: 80 });
+
+    const response = await request(app.server)
+      .post("/orders")
+      .send({ name: "Maria", phone: "x", items: [{ variant_id: variant.id, quantity: 3 }] });
+
+    expect(response.statusCode).toBe(201);
+    const updated = await prisma.variant.findUnique({ where: { id: variant.id } });
+    expect(updated?.quantity).toBe(7);
+  });
+
+  it("should return 422 when an item exceeds available stock", async () => {
+    const variant = await createVariant({ variant_price: 80 });
+
+    const response = await request(app.server)
+      .post("/orders")
+      .send({ name: "Maria", phone: "x", items: [{ variant_id: variant.id, quantity: 11 }] });
+
+    expect(response.statusCode).toBe(422);
+    expect(response.body.error.code).toBe("INSUFFICIENT_STOCK");
+
+    // O estoque não deve ter sido alterado.
+    const untouched = await prisma.variant.findUnique({ where: { id: variant.id } });
+    expect(untouched?.quantity).toBe(10);
+  });
+
   it("should reject an order with an empty items list", async () => {
     const response = await request(app.server)
       .post("/orders")
