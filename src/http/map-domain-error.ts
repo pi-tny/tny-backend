@@ -5,6 +5,8 @@ import { ProductSkuAlreadyExistsError } from "@/use-cases/errors/product-sku-alr
 import { VariantSkuAlreadyExistsError } from "@/use-cases/errors/variant-sku-already-exists-error";
 import { AdminAlreadyExistsError } from "@/use-cases/errors/admin-already-exists-error";
 import { InvalidPromotionalPriceError } from "@/use-cases/errors/invalid-promotional-price-error";
+import { InsufficientStockError } from "@/use-cases/errors/insufficient-stock-error";
+import { AccountLockedError } from "@/use-cases/errors/account-locked-error";
 
 /**
  * Maps known domain errors to their HTTP response (openapi `Error` shape).
@@ -22,6 +24,12 @@ export function mapDomainError(error: unknown, reply: FastifyReply) {
     return reply
       .status(401)
       .send({ error: { code: "INVALID_CREDENTIALS", message: error.message } });
+  }
+
+  if (error instanceof AccountLockedError) {
+    return reply
+      .status(423)
+      .send({ error: { code: "ACCOUNT_LOCKED", message: error.message } });
   }
 
   if (error instanceof ProductSkuAlreadyExistsError) {
@@ -45,6 +53,12 @@ export function mapDomainError(error: unknown, reply: FastifyReply) {
   if (error instanceof InvalidPromotionalPriceError) {
     return reply.status(422).send({
       error: { code: "INVALID_PROMOTIONAL_PRICE", message: error.message },
+    });
+  }
+
+  if (error instanceof InsufficientStockError) {
+    return reply.status(422).send({
+      error: { code: "INSUFFICIENT_STOCK", message: error.message },
     });
   }
 
