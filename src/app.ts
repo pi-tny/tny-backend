@@ -46,11 +46,15 @@ app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
 // CORS: "*" allows any origin; otherwise a comma-separated allowlist.
+// methods and allowedHeaders are declared explicitly so Vercel's edge layer
+// returns the correct headers on OPTIONS preflight requests.
 app.register(cors, {
   origin:
     env.CORS_ORIGIN === "*"
       ? true
       : env.CORS_ORIGIN.split(",").map((origin) => origin.trim()),
+  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 });
 
 // Swagger: the OpenAPI spec is generated from the routes' Zod schemas via
