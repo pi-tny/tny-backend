@@ -1,4 +1,4 @@
-# SKILL: Camada HTTP — Fastify + Zod DTOs + Swagger gerado (contacteme)
+# SKILL: Camada HTTP — Fastify + Zod DTOs + Swagger gerado
 
 ## Quando usar esta skill
 Use ao escrever a camada web do padrão `backend_contacteme`: Fastify 5 com

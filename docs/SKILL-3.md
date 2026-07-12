@@ -1,4 +1,4 @@
-# SKILL: Arquitetura em camadas + domínio rico + multi-banco (contacteme)
+# SKILL: Arquitetura em camadas + domínio rico + multi-banco
 
 ## Quando usar esta skill
 Use ao escrever código novo em uma API Node/TypeScript que segue o padrão do projeto

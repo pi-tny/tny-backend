@@ -86,7 +86,7 @@ describe("Orders e2e", () => {
     expect(response.statusCode).toBe(422);
     expect(response.body.error.code).toBe("INSUFFICIENT_STOCK");
 
-    // O estoque não deve ter sido alterado.
+    // the stock must not have changed.
     const untouched = await prisma.variant.findUnique({ where: { id: variant.id } });
     expect(untouched?.quantity).toBe(10);
   });

@@ -13,7 +13,7 @@ export const productIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-// ---- response shapes (openapi ProductSummary / ProductDetail) ----
+// response shapes (openapi ProductSummary / ProductDetail)
 export const productSummarySchema = z.object({
   id: z.number().int(),
   sku: z.string(),
@@ -57,7 +57,7 @@ export const productListResponseSchema = z.object({
   meta: paginationMetaSchema,
 });
 
-// ---- request shapes ----
+// request shapes
 // A string query param needs an explicit true/false mapping (z.coerce.boolean
 // treats any non-empty string as true).
 export const booleanQuery = z

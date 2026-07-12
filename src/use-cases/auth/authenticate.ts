@@ -4,9 +4,9 @@ import type { AdminsRepository } from "@/repositories/admins-repository";
 import { InvalidCredentialsError } from "@/use-cases/errors/invalid-credentials-error";
 import { AccountLockedError } from "@/use-cases/errors/account-locked-error";
 
-// Bloqueio após tentativas falhas consecutivas (RNF003).
+// lock the account after consecutive failed attempts (rnf003).
 export const MAX_LOGIN_ATTEMPTS = 5;
-export const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutos
+export const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 interface AuthenticateUseCaseRequest {
   email: string;
@@ -30,7 +30,7 @@ export class AuthenticateUseCase {
       throw new InvalidCredentialsError();
     }
 
-    // Conta ainda bloqueada.
+    // account still locked.
     if (admin.locked_until && admin.locked_until.getTime() > Date.now()) {
       throw new AccountLockedError();
     }
@@ -48,7 +48,7 @@ export class AuthenticateUseCase {
       throw shouldLock ? new AccountLockedError() : new InvalidCredentialsError();
     }
 
-    // Sucesso: zera o contador se necessário.
+    // success: reset the counter if needed.
     if (admin.failed_login_attempts > 0 || admin.locked_until) {
       await this.adminsRepository.updateLoginState(admin.id, {
         failed_login_attempts: 0,

@@ -44,7 +44,7 @@ export const orderCreatedResponseSchema = z.object({
   }),
 });
 
-// ---- admin ----
+// admin
 export const orderIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });

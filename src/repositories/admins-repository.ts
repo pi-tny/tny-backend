@@ -25,6 +25,6 @@ export interface AdminsRepository {
   create(data: CreateAdminData): Promise<Admin>;
   update(id: number, data: UpdateAdminData): Promise<Admin | null>;
   delete(id: number): Promise<boolean>;
-  // Atualiza o controle de tentativas de login / bloqueio da conta.
+  // updates the login-attempt tracking / account lock.
   updateLoginState(id: number, data: LoginState): Promise<void>;
 }

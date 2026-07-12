@@ -1,4 +1,4 @@
-# SKILL: Padrão de API Fastify + Prisma (nlw-journey)
+# SKILL: Padrão de API Fastify + Prisma
 
 ## Quando usar esta skill
 Use ao escrever código novo neste projeto (API HTTP em Fastify + Prisma + Zod sobre SQLite),

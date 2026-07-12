@@ -71,7 +71,7 @@ describe("Admin Auth e2e", () => {
       },
     });
 
-    // 4 falhas → 401; a 5ª atinge o limite → 423 (bloqueada).
+    // 4 failures -> 401; the 5th hits the limit -> 423 (locked).
     for (let i = 0; i < 4; i++) {
       const r = await request(app.server)
         .post("/admin/auth/login")
@@ -85,7 +85,7 @@ describe("Admin Auth e2e", () => {
     expect(locking.statusCode).toBe(423);
     expect(locking.body.error.code).toBe("ACCOUNT_LOCKED");
 
-    // Mesmo com a senha correta, permanece bloqueada.
+    // even with the correct password, it stays locked.
     const correct = await request(app.server)
       .post("/admin/auth/login")
       .send({ email: "admin@tny.dev", password: "password123" });

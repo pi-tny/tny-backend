@@ -47,7 +47,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
       created_at: new Date(),
       items: itemViews,
     };
-    // Espelha o comportamento do banco: decrementa o estoque das variantes.
+    // mirrors the db behavior: decrements the variants' stock.
     for (const item of items) {
       const snapshot = this.snapshots.get(item.variant_id);
       if (snapshot) snapshot.quantity -= item.quantity;

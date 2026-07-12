@@ -1,4 +1,4 @@
-# Skill: Padrão de API Node + Fastify + Prisma (gympass-style-app)
+# Skill: Padrão de API Node + Fastify + Prisma
 
 ## Quando usar esta skill
 Use ao escrever código novo neste projeto (ou em um clone direto dele): uma API HTTP

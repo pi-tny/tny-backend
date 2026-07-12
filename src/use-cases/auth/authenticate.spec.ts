@@ -65,19 +65,19 @@ describe("Authenticate Use Case", () => {
   it("should lock the account after too many failed attempts", async () => {
     await seedAdmin();
 
-    // As primeiras (MAX-1) falhas ainda são InvalidCredentials.
+    // the first (max-1) failures are still InvalidCredentials.
     for (let i = 0; i < MAX_LOGIN_ATTEMPTS - 1; i++) {
       await expect(() =>
         sut.execute({ email: "admin@tny.dev", password: "wrong-password" }),
       ).rejects.toBeInstanceOf(InvalidCredentialsError);
     }
 
-    // A falha que atinge o limite bloqueia a conta.
+    // the failure that hits the limit locks the account.
     await expect(() =>
       sut.execute({ email: "admin@tny.dev", password: "wrong-password" }),
     ).rejects.toBeInstanceOf(AccountLockedError);
 
-    // Mesmo com a senha correta, permanece bloqueada.
+    // even with the correct password, it stays locked.
     await expect(() =>
       sut.execute({ email: "admin@tny.dev", password: "password123" }),
     ).rejects.toBeInstanceOf(AccountLockedError);

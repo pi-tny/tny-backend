@@ -55,7 +55,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
   }
 
   async create(data: CreateOrderData, items: ResolvedOrderItem[]) {
-    // Cria o pedido e decrementa o estoque das variantes atomicamente.
+    // creates the order and decrements the variants' stock atomically.
     const order = await prisma.$transaction(async (tx) => {
       const created = await tx.order.create({
         data: {
